@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User | e-BPHTB Majene</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="manajemen-user" data-submenu="manajemen-user-list">
+
+<div class="app-layout">
+    <!-- Desktop Sidebar -->
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+
+    <!-- Mobile Overlay & Sidebar -->
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <p class="topbar-title">Manajemen User</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content fade-in-up" x-data="manajemenUserApp()">
+            <!-- Header -->
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem">
+                <div class="page-header" style="margin-bottom:0">
+                    <h2>Manajemen Pengguna Aplikasi</h2>
+                    <p>Kelola data notaris, wajib pajak mandiri, dan verifikator internal.</p>
+                </div>
+                <div style="display:flex;gap:.5rem">
+                    <button @click="openAddModal()" class="btn-action btn-action-blue" style="padding:.6rem 1rem">
+                        + Tambah User Internal
+                    </button>
+                    <button @click="fetchUsers()" class="btn-refresh blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Cari Nama/Username</label>
+                        <input type="text" x-model="searchQuery" class="input-field" placeholder="Ketik kata kunci..." style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Filter Role</label>
+                        <select x-model="filterRole" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="verifikator_berkas">Verifikator Berkas</option>
+                            <option value="verifikator_lapangan">Verifikator Lapangan</option>
+                            <option value="notaris">Notaris</option>
+                            <option value="mandiri">Mandiri / Perorangan</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Filter Status</label>
+                        <select x-model="filterStatus" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="aktif">Aktif</option>
+                            <option value="beku">Dibekukan</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="page-card">
+                <div x-show="loading" class="loading-state">
+                    <svg class="spinner spinner-blue" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+
+                <div x-show="!loading && filteredUsers.length === 0" class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <p>Tidak ada pengguna ditemukan</p>
+                </div>
+
+                <div x-show="!loading && filteredUsers.length > 0" class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Username</th>
+                                <th>Nama / NIK</th>
+                                <th>Kontak</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(u, i) in filteredUsers" :key="u.id">
+                                <tr>
+                                    <td class="td-no" x-text="i + 1"></td>
+                                    <td style="font-weight:700;color:#1e40af" x-text="u.username"></td>
+                                    <td>
+                                        <p class="td-name-main" x-text="u.nama"></p>
+                                        <p class="td-name-sub" x-text="u.nik || '-'"></p>
+                                    </td>
+                                    <td style="font-size:.7rem">
+                                        <div x-text="u.email || '-'"></div>
+                                        <div x-text="u.no_hp || '-'"></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-purple" x-show="u.status === 'pending'" x-text="'Request: ' + (u.requested_role || 'Tidak ada')"></span>
+                                        <span class="badge badge-blue" x-show="u.status !== 'pending'" x-text="u.role ? u.role.replace('_', ' ') : '-'"></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" :class="statusBadge(u.status)" x-text="u.status.toUpperCase()"></span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+                                            <!-- Approve Pending -->
+                                            <button x-show="u.status === 'pending'" @click="openApproveModal(u)" class="btn-action btn-action-green" style="padding:.25rem .5rem">Setujui</button>
+                                            
+                                            <!-- Edit -->
+                                            <button @click="openEditModal(u)" class="btn-action btn-action-blue" style="padding:.25rem .5rem;background:#e0f2fe;color:#0284c7">Edit</button>
+                                            
+                                            <!-- Toggle Freeze -->
+                                            <button x-show="u.status === 'aktif'" @click="toggleFreeze(u, 'beku')" class="btn-action btn-action-red" style="padding:.25rem .5rem;background:#fee2e2;color:#b91c1c">Bekukan</button>
+                                            <button x-show="u.status === 'beku'" @click="toggleFreeze(u, 'aktif')" class="btn-action btn-action-green" style="padding:.25rem .5rem;background:#dcfce7;color:#15803d">Aktifkan</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MODAL: ADD / EDIT / APPROVE USER -->
+            <div x-show="showModal" x-cloak class="modal-overlay" style="z-index:200">
+                <div class="modal-backdrop" @click="showModal=false"></div>
+                <div class="modal-container">
+                    <div class="modal-box" style="max-width:500px">
+                        <div class="modal-header modal-header-blue">
+                            <div>
+                                <h3 x-text="modalMode === 'add' ? 'Tambah User Internal' : (modalMode === 'approve' ? 'Setujui Pengguna Baru' : 'Edit Pengguna')"></h3>
+                                <p x-text="form.username"></p>
+                            </div>
+                            <button @click="showModal=false" class="modal-close-btn">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form @submit.prevent="saveUser" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="md:col-span-2">
+                                        <label class="field-label">Username <span x-show="modalMode==='add'">*</span></label>
+                                        <input type="text" x-model="form.username" :disabled="modalMode !== 'add'" class="input-field" required>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="field-label">Nama Lengkap *</label>
+                                        <input type="text" x-model="form.nama" class="input-field" required>
+                                    </div>
+                                    <div>
+                                        <label class="field-label">NIK</label>
+                                        <input type="text" x-model="form.nik" class="input-field">
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Role Akses *</label>
+                                        <select x-model="form.role" class="input-field" required>
+                                            <option value="">-- Pilih Role --</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="verifikator_berkas">Verifikator Berkas</option>
+                                            <option value="verifikator_lapangan">Verifikator Lapangan</option>
+                                            <option value="notaris">Notaris</option>
+                                            <option value="mandiri">Mandiri / Perorangan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Email</label>
+                                        <input type="email" x-model="form.email" class="input-field">
+                                    </div>
+                                    <div>
+                                        <label class="field-label">No HP / WA</label>
+                                        <input type="text" x-model="form.no_hp" class="input-field">
+                                    </div>
+                                    <div class="md:col-span-2" x-show="modalMode === 'add' || form.passwordReset">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="field-label">Password <span x-show="modalMode==='add'">*</span></label>
+                                                <input type="password" x-model="form.password" class="input-field" :required="modalMode === 'add' || form.passwordReset" placeholder="••••••••">
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Konfirmasi Password <span x-show="modalMode==='add'">*</span></label>
+                                                <input type="password" x-model="form.passwordConfirm" class="input-field" :required="modalMode === 'add' || form.passwordReset" placeholder="••••••••">
+                                            </div>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-2" x-show="modalMode==='edit'">Isi hanya jika ingin mereset password pengguna ini.</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 justify-end pt-4 border-t border-slate-100 mt-4">
+                                    <button type="button" @click="showModal=false" class="btn-filter btn-filter-reset">Batal</button>
+                                    <button type="submit" class="btn-filter btn-filter-primary-blue" :disabled="saving">
+                                        <span x-text="saving ? 'Menyimpan...' : 'Simpan Data'"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/manajemen-user.js"></script>
+<script>initSidebar();</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

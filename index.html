@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | e-BPHTB Online — BAPENDA Kabupaten Majene</title>
+    <meta name="description" content="Login Sistem e-BPHTB Online BAPENDA Kabupaten Majene — Pengajuan BPHTB secara digital.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .login-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 45%, #1d4ed8 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .login-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,.15) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(14,165,233,.15) 0%, transparent 50%);
+        }
+        .login-dots::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .login-card {
+            background: rgba(255,255,255,.97);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.3);
+            border-radius: 1.75rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.1);
+            position: relative;
+            z-index: 10;
+        }
+        .signup-card {
+            max-width: 650px;
+        }
+        .login-input {
+            width: 100%;
+            padding: .75rem 1rem;
+            border-radius: .75rem;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            font-family: inherit;
+            font-size: .875rem;
+            outline: none;
+            transition: all .2s;
+            display: block;
+        }
+        .login-input:focus {
+            border-color: #3b82f6;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(59,130,246,.12);
+        }
+        .login-btn {
+            width: 100%;
+            padding: .875rem;
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            color: #fff;
+            font-weight: 900;
+            font-size: .875rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            border: none;
+            border-radius: .875rem;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(29,78,216,.35);
+            transition: all .2s;
+        }
+        .login-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(29,78,216,.45); }
+        .login-btn:active { transform: translateY(0); }
+        .login-btn:disabled { opacity: .7; cursor: not-allowed; transform: none; }
+        
+        .btn-outline {
+            background: transparent;
+            color: #1e40af;
+            border: 1.5px solid #bfdbfe;
+            box-shadow: none;
+        }
+        .btn-outline:hover { background: #eff6ff; box-shadow: none; transform: none; }
+        
+        .field-label { display: block; font-size: .7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .35rem; }
+        
+        /* Validation feedback */
+        .pwd-req { font-size: .7rem; color: #94a3b8; display: flex; align-items: center; gap: .25rem; margin-top: .25rem; }
+        .pwd-req.valid { color: #16a34a; }
+        .pwd-req svg { width: 12px; height: 12px; }
+
+        /* Review Table */
+        .review-table { width: 100%; font-size: .8rem; text-align: left; }
+        .review-table th { color: #64748b; font-weight: 600; padding: .5rem 0; width: 35%; border-bottom: 1px solid #f1f5f9; }
+        .review-table td { color: #1e293b; font-weight: 700; padding: .5rem 0; border-bottom: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body class="login-bg login-dots" x-data="authApp()">
+    <div class="flex items-center justify-center min-h-screen p-4 py-10">
+        <!-- Decorative blobs -->
+        <div class="absolute top-1/4 -left-20 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
+        <div class="absolute bottom-1/4 -right-20 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style="animation-delay:.5s"></div>
+
+        <div class="login-card" :class="{ 'signup-card': view !== 'login' }" x-cloak>
+            
+            <!-- Logo & Title -->
+            <div class="text-center mb-7">
+                <img src="logo.png" alt="Logo Kabupaten Majene"
+                     class="w-20 h-20 object-contain mx-auto mb-4"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                <div style="display:none" class="w-16 h-16 bg-blue-700 rounded-2xl items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-black text-slate-800 leading-tight">e-BPHTB Online</h1>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1.5">
+                    BAPENDA Kabupaten Majene
+                </p>
+            </div>
+
+            <!-- ================= VIEW: LOGIN ================= -->
+            <div x-show="view === 'login'">
+                <h2 class="text-lg font-bold text-slate-700 mb-4 text-center">Masuk ke Akun Anda</h2>
+                <form @submit.prevent="doLogin" class="space-y-5">
+                    <div>
+                        <label class="field-label" for="username-input">Username</label>
+                        <input id="username-input" x-model="login.username" type="text" class="login-input" placeholder="Masukkan Username" required autocomplete="username">
+                    </div>
+                    <div>
+                        <label class="field-label" for="password-input">Password</label>
+                        <input id="password-input" x-model="login.password" type="password" class="login-input" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="login-btn mt-2" :disabled="loading">
+                        <span x-text="loading ? 'Memproses...' : 'Masuk Aplikasi'"></span>
+                    </button>
+                </form>
+                <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+                    <p class="text-sm text-slate-500">
+                        Belum punya akun? 
+                        <button @click="view = 'signup'" class="text-blue-600 font-bold hover:underline">Daftar Mandiri</button>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: SIGN UP ================= -->
+            <div x-show="view === 'signup'">
+                <h2 class="text-lg font-bold text-slate-700 mb-4 text-center">Pendaftaran Akun Baru</h2>
+                <form @submit.prevent="goToReview" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="field-label">Nama Lengkap *</label>
+                            <input x-model="signup.nama" type="text" class="login-input" required>
+                        </div>
+                        <div>
+                            <label class="field-label">Username *</label>
+                            <input x-model="signup.username" type="text" class="login-input" required @input="signup.username = $event.target.value.replace(/\s+/g, '').toLowerCase()">
+                            <p class="text-[10px] text-slate-400 mt-1">Tanpa spasi, huruf kecil.</p>
+                        </div>
+                        <div>
+                            <label class="field-label">NIK (No. KTP) *</label>
+                            <input x-model="signup.nik" type="text" class="login-input" maxlength="16" required @input="signup.nik = $event.target.value.replace(/\D/g, '')">
+                        </div>
+                        <div>
+                            <label class="field-label">Daftar Sebagai *</label>
+                            <select x-model="signup.requested_role" class="login-input" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="mandiri">Perorangan / Mandiri</option>
+                                <option value="notaris">Notaris / PPAT</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Email Aktif *</label>
+                            <input x-model="signup.email" type="email" class="login-input" required>
+                        </div>
+                        <div>
+                            <label class="field-label">No. HP / WhatsApp *</label>
+                            <input x-model="signup.no_hp" type="text" class="login-input" required @input="signup.no_hp = $event.target.value.replace(/\D/g, '')">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="field-label">Alamat Domisili *</label>
+                            <textarea x-model="signup.alamat" class="login-input" rows="2" required></textarea>
+                        </div>
+                        
+                        <!-- Password Section -->
+                        <div>
+                            <label class="field-label">Password *</label>
+                            <input x-model="signup.password" type="password" class="login-input" required>
+                            
+                            <!-- Validations -->
+                            <div class="mt-2">
+                                <div class="pwd-req" :class="{'valid': signup.password.length >= 6}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    Minimal 6 karakter
+                                </div>
+                                <div class="pwd-req" :class="{'valid': /\d/.test(signup.password)}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    Mengandung angka
+                                </div>
+                                <div class="pwd-req" :class="{'valid': hasSymbol()}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    Mengandung simbol unik
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="field-label">Konfirmasi Password *</label>
+                            <input x-model="signup.passwordConfirm" type="password" class="login-input" required>
+                            <div class="pwd-req mt-2" :class="{'valid': signup.password !== '' && signup.password === signup.passwordConfirm}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                Password cocok
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
+                        <button type="button" @click="view = 'login'" class="login-btn btn-outline" style="flex:1">Batal</button>
+                        <button type="submit" class="login-btn" style="flex:2">Lanjut Review</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ================= VIEW: REVIEW ================= -->
+            <div x-show="view === 'review'">
+                <h2 class="text-lg font-bold text-slate-700 mb-4 text-center">Review Pendaftaran</h2>
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
+                    <table class="review-table">
+                        <tbody>
+                            <tr><th>Nama Lengkap</th><td x-text="signup.nama"></td></tr>
+                            <tr><th>Username</th><td x-text="signup.username"></td></tr>
+                            <tr><th>NIK (No KTP)</th><td x-text="signup.nik"></td></tr>
+                            <tr><th>Daftar Sebagai</th><td class="capitalize" x-text="signup.requested_role"></td></tr>
+                            <tr><th>Email</th><td x-text="signup.email"></td></tr>
+                            <tr><th>No. WhatsApp</th><td x-text="signup.no_hp"></td></tr>
+                            <tr><th>Alamat</th><td x-text="signup.alamat"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" @click="view = 'signup'" :disabled="loading" class="login-btn btn-outline" style="flex:1">Kembali Edit</button>
+                    <button type="button" @click="doSignUp" :disabled="loading" class="login-btn" style="flex:2">
+                        <span x-text="loading ? 'Mendaftarkan...' : 'Konfirmasi & Daftar'"></span>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-center text-[10px] text-slate-300 mt-6">
+                © 2025 BAPENDA Kabupaten Majene — Sistem e-BPHTB
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/config.js?v=2"></script>
+    <script src="js/utils.js?v=2"></script>
+    
+    <script>
+        // SHA-256 Hashing helper
+        async function hashSHA256(str) {
+            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder("utf-8").encode(str));
+            return Array.prototype.map.call(new Uint8Array(buf), x=>(('00'+x.toString(16)).slice(-2))).join('');
+        }
+
+        // Setup Alpine Data
+        function authApp() {
+            return {
+                view: 'login', // 'login', 'signup', 'review'
+                loading: false,
+                login: {
+                    username: '',
+                    password: ''
+                },
+                signup: {
+                    nama: '', username: '', nik: '', requested_role: '', email: '', no_hp: '', alamat: '', password: '', passwordConfirm: ''
+                },
+
+                init() {
+                    // Check if already logged in
+                    const userStr = sessionStorage.getItem('ebphtb_user_data');
+                    if (userStr) {
+                        this.redirectBasedOnRole(JSON.parse(userStr).role);
+                    }
+                },
+
+                // ---- LOGIN LOGIC ----
+                async doLogin() {
+                    this.loading = true;
+                    try {
+                        const hashPwd = await hashSHA256(this.login.password);
+                        
+                        const { data, error } = await db.from('users')
+                            .select('*')
+                            .eq('username', this.login.username)
+                            .eq('password', hashPwd)
+                            .maybeSingle();
+
+                        if (error) throw error;
+                        
+                        if (!data) {
+                            Swal.fire({ icon: 'error', title: 'Login Gagal', text: 'Username atau Password salah.' });
+                            return;
+                        }
+
+                        if (data.status === 'pending') {
+                            Swal.fire({ icon: 'warning', title: 'Menunggu Persetujuan', text: 'Akun Anda sedang menunggu persetujuan Admin Bapenda. Silakan cek berkala.' });
+                            return;
+                        }
+                        if (data.status === 'beku') {
+                            Swal.fire({ icon: 'error', title: 'Akun Dibekukan', text: 'Akun Anda dibekukan oleh Admin. Hubungi Bapenda untuk info lebih lanjut.' });
+                            return;
+                        }
+
+                        // Login Success
+                        // Store full user data in session
+                        sessionStorage.setItem('ebphtb_user_data', JSON.stringify(data));
+                        // Support backward compatibility (if sidebar.js still uses ebphtb_user)
+                        sessionStorage.setItem('ebphtb_user', data.nama);
+                        
+                        // Add log
+                        logActivity('Login', `User ${data.username} berhasil login`);
+                        
+                        this.redirectBasedOnRole(data.role);
+
+                    } catch (err) {
+                        console.error('Login error:', err);
+                        Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: err.message });
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                redirectBasedOnRole(role) {
+                    if (role === 'admin') window.location.href = 'manajemen-user.html'; // Default admin landing
+                    else if (role === 'verifikator_berkas') window.location.href = 'verifikasi-berkas.html';
+                    else if (role === 'verifikator_lapangan') window.location.href = 'verifikasi-lapangan.html';
+                    else window.location.href = 'pengajuan-bphtb.html'; // notaris, mandiri, dll
+                },
+
+                // ---- SIGN UP LOGIC ----
+                hasSymbol() {
+                    return /[!@#$%^&*(),.?\-_"':{}|<>]/.test(this.signup.password);
+                },
+
+                isPasswordValid() {
+                    const p = this.signup.password;
+                    return p.length >= 6 && /\d/.test(p) && this.hasSymbol() && p === this.signup.passwordConfirm;
+                },
+
+                goToReview() {
+                    if (!this.isPasswordValid()) {
+                        Swal.fire({ icon: 'warning', title: 'Password Tidak Valid', text: 'Pastikan password memenuhi semua syarat dan konfirmasi password cocok.' });
+                        return;
+                    }
+                    this.view = 'review';
+                },
+
+                async doSignUp() {
+                    this.loading = true;
+                    try {
+                        // 1. Check if username or NIK exists
+                        const { data: existUser } = await db.from('users').select('username, nik').or(`username.eq.${this.signup.username},nik.eq.${this.signup.nik}`);
+                        if (existUser && existUser.length > 0) {
+                            const conflict = existUser[0];
+                            if (conflict.username === this.signup.username) throw new Error('Username sudah digunakan.');
+                            if (conflict.nik === this.signup.nik) throw new Error('NIK ini sudah terdaftar.');
+                        }
+
+                        // 2. Hash Password & Insert
+                        const hashPwd = await hashSHA256(this.signup.password);
+                        
+                        const payload = {
+                            username: this.signup.username,
+                            nama: this.signup.nama,
+                            nik: this.signup.nik,
+                            email: this.signup.email,
+                            no_hp: this.signup.no_hp,
+                            alamat: this.signup.alamat,
+                            password: hashPwd,
+                            requested_role: this.signup.requested_role,
+                            status: 'pending' // waits for admin approval
+                        };
+
+                        const { error } = await db.from('users').insert([payload]);
+                        if (error) throw error;
+
+                        // Add log
+                        logActivity('Pendaftaran Baru', `User ${this.signup.nama} mendaftar sebagai ${this.signup.requested_role}`);
+
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Pendaftaran Berhasil!',
+                            text: 'Akun Anda telah terdaftar. Silakan tunggu persetujuan dari Admin Bapenda sebelum Anda dapat login.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+
+                        // Reset & go back to login
+                        this.view = 'login';
+                        this.signup = { nama:'', username:'', nik:'', requested_role:'', email:'', no_hp:'', alamat:'', password:'', passwordConfirm:'' };
+
+                    } catch (err) {
+                        console.error('Signup error:', err);
+                        Swal.fire({ icon: 'error', title: 'Pendaftaran Gagal', text: err.message });
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

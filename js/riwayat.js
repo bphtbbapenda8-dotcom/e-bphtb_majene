@@ -1,0 +1,294 @@
+/**
+ * riwayat.js — Alpine.js component for Riwayat Berkas (BPHTB & MBR)
+ * Used by: riwayat-bphtb.html and riwayat-mbr.html
+ * @param {string} type - 'bphtb' or 'mbr'
+ */
+
+function riwayatApp(type) {
+    return {
+        type,
+        data: [],
+        loading: false,
+        filterNotaris: '',
+        filterJenis: '',
+        showRincian: false,
+        selectedBerkas: null,
+        errorMsg: '',
+
+        // File upload states (Main Payment)
+        buktiFileObj: null,
+        buktiFileName: '',
+        uploadingBukti: false,
+
+        // File upload states (STPD Payment)
+        stpdFileObj: null,
+        stpdFileName: '',
+        uploadingSTPD: false,
+
+        get listNotaris() { return LIST_NOTARIS; },
+        get isMbr() { return this.type === 'mbr'; },
+        get accentColor() { return this.isMbr ? 'green' : 'blue'; },
+
+        init() {
+            this.fetchData();
+        },
+
+        async fetchData() {
+            this.loading = true;
+            this.data = [];
+            this.errorMsg = '';
+            try {
+                let q;
+                if (this.isMbr) {
+                    q = db.from('pengajuan_mbr')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                } else {
+                    q = db.from('pengajuan_bphtb')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                }
+
+                const userStr = sessionStorage.getItem('ebphtb_user_data');
+                if (userStr) {
+                    const userData = JSON.parse(userStr);
+                    const role = userData.role;
+                    const namaUser = userData.nama;
+
+                    if (role === 'notaris') {
+                        q = q.eq('notaris', namaUser);
+                    } else if (role === 'mandiri') {
+                        q = q.ilike('nama', `%${namaUser}%`);
+                    }
+                }
+
+                if (this.filterNotaris) q = q.eq('notaris', this.filterNotaris);
+                if (this.filterJenis && !this.isMbr) q = q.eq('jenis_perolehan', this.filterJenis);
+
+                const result = await q;
+                if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+
+                this.data = result.data || [];
+            } catch (err) {
+                console.error('[Riwayat] fetchData error:', err);
+                this.errorMsg = err.message;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Data',
+                    html: `<div style="text-align:left;font-size:.875rem">${err.message}</div>`,
+                    confirmButtonColor: '#dc2626'
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        resetFilter() {
+            this.filterNotaris = '';
+            this.filterJenis   = '';
+            this.fetchData();
+        },
+
+        openRincian(item) {
+            this.selectedBerkas = item;
+            this.showRincian = true;
+            
+            // Reset upload fields
+            this.buktiFileObj = null;
+            this.buktiFileName = '';
+            this.stpdFileObj = null;
+            this.stpdFileName = '';
+        },
+
+        // ── Main Payment Upload ─────────────────────────────────────
+        handleBuktiFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire({ icon: 'warning', title: 'File Terlalu Besar', text: 'Maksimal file bukti bayar adalah 2MB.', confirmButtonColor: '#1d4ed8' });
+                e.target.value = ''; return;
+            }
+            if (file.type !== 'application/pdf' && !file.type.startsWith('image/')) {
+                Swal.fire({ icon: 'warning', title: 'Format Tidak Valid', text: 'Unggah file PDF atau Gambar saja.', confirmButtonColor: '#1d4ed8' });
+                e.target.value = ''; return;
+            }
+            this.buktiFileObj = file;
+            this.buktiFileName = file.name;
+        },
+
+        async submitBuktiBayar() {
+            if (!this.buktiFileObj) {
+                Swal.fire({ icon: 'warning', title: 'Pilih File', text: 'Silakan pilih file bukti bayar terlebih dahulu.', confirmButtonColor: '#1d4ed8' });
+                return;
+            }
+
+            this.uploadingBukti = true;
+            try {
+                Swal.fire({
+                    title: 'Mengunggah Bukti Bayar...',
+                    text: 'Menyimpan berkas ke Google Drive',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const formData = new FormData();
+                formData.append('aksi', 'upload_file_saja');
+                formData.append('nik', this.selectedBerkas.nik);
+                formData.append('bukti_bayar_file', await toBase64(this.buktiFileObj));
+
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.result !== 'success') throw new Error(result.error || 'Gagal menyimpan file.');
+
+                const driveUrl = result.url_bukti_bayar;
+
+                // Update status in Supabase
+                const { error } = await db.from(this.isMbr ? 'pengajuan_mbr' : 'pengajuan_bphtb')
+                    .update({
+                        url_bukti_bayar: driveUrl,
+                        alur_berkas: 'Pembayaran sedang diverifikasi'
+                    })
+                    .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
+
+                if (error) throw error;
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Bukti Pembayaran Terkirim!',
+                    text: 'Status berkas Anda kini berubah menjadi Pembayaran sedang diverifikasi.',
+                    confirmButtonColor: '#1d4ed8'
+                });
+
+                this.showRincian = false;
+                await this.fetchData();
+
+            } catch (err) {
+                console.error('[Riwayat] submitBuktiBayar error:', err);
+                Swal.fire({ icon: 'error', title: 'Gagal Mengunggah', text: err.message, confirmButtonColor: '#dc2626' });
+            } finally {
+                this.uploadingBukti = false;
+            }
+        },
+
+        // ── STPD Payment Upload ─────────────────────────────────────
+        handleSTPDBuktiFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire({ icon: 'warning', title: 'File Terlalu Besar', text: 'Maksimal file bukti bayar adalah 2MB.', confirmButtonColor: '#1d4ed8' });
+                e.target.value = ''; return;
+            }
+            if (file.type !== 'application/pdf' && !file.type.startsWith('image/')) {
+                Swal.fire({ icon: 'warning', title: 'Format Tidak Valid', text: 'Unggah file PDF atau Gambar saja.', confirmButtonColor: '#1d4ed8' });
+                e.target.value = ''; return;
+            }
+            this.stpdFileObj = file;
+            this.stpdFileName = file.name;
+        },
+
+        async submitBuktiSTPD() {
+            if (!this.stpdFileObj) {
+                Swal.fire({ icon: 'warning', title: 'Pilih File', text: 'Silakan pilih file bukti bayar STPD terlebih dahulu.', confirmButtonColor: '#1d4ed8' });
+                return;
+            }
+
+            this.uploadingSTPD = true;
+            try {
+                Swal.fire({
+                    title: 'Mengunggah Bukti STPD...',
+                    text: 'Menyimpan berkas ke Google Drive',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const formData = new FormData();
+                formData.append('aksi', 'upload_file_saja');
+                formData.append('nik', this.selectedBerkas.nik);
+                formData.append('bukti_stpd_file', await toBase64(this.stpdFileObj));
+
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.result !== 'success') throw new Error(result.error || 'Gagal menyimpan file.');
+
+                const driveUrl = result.url_bukti_stpd;
+
+                // Update status in Supabase
+                const { error } = await db.from(this.isMbr ? 'pengajuan_mbr' : 'pengajuan_bphtb')
+                    .update({
+                        url_bukti_stpd: driveUrl,
+                        stpd_status: 'Pembayaran sedang diverifikasi'
+                    })
+                    .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
+
+                if (error) throw error;
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Bukti Pembayaran STPD Terkirim!',
+                    text: 'Status STPD Anda telah diupdate ke Pembayaran sedang diverifikasi.',
+                    confirmButtonColor: '#1d4ed8'
+                });
+
+                this.showRincian = false;
+                await this.fetchData();
+
+            } catch (err) {
+                console.error('[Riwayat] submitBuktiSTPD error:', err);
+                Swal.fire({ icon: 'error', title: 'Gagal Mengunggah STPD', text: err.message, confirmButtonColor: '#dc2626' });
+            } finally {
+                this.uploadingSTPD = false;
+            }
+        },
+
+        // ── Edit & Withdraw Actions ──────────────────────────────────
+        perbaikiPengajuan(item) {
+            sessionStorage.setItem('edit_pengajuan_id', item.no_pengajuan);
+            const targetPage = this.isMbr ? 'pengajuan-mbr.html' : 'pengajuan-bphtb.html';
+            window.location.href = targetPage;
+        },
+
+        async urungkanPengajuan(item) {
+            const confirm = await Swal.fire({
+                title: 'Apakah Anda Yakin?',
+                text: 'Pengajuan BPHTB ini akan dihapus permanen dari sistem.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            this.loading = true;
+            try {
+                const { error } = await db.from(this.isMbr ? 'pengajuan_mbr' : 'pengajuan_bphtb')
+                    .delete()
+                    .eq('no_pengajuan', item.no_pengajuan);
+
+                if (error) throw error;
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Pengajuan Dibatalkan',
+                    text: 'Berkas pengajuan berhasil dihapus.',
+                    confirmButtonColor: '#1d4ed8'
+                });
+
+                this.showRincian = false;
+                await this.fetchData();
+
+            } catch (err) {
+                console.error('[Riwayat] urungkanPengajuan error:', err);
+                Swal.fire({ icon: 'error', title: 'Gagal Menghapus', text: err.message, confirmButtonColor: '#dc2626' });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        statusBadge(status) { return statusBadge(status); },
+        fmtCurr(v)          { return fmtCurr(v); },
+        fmtDate(d)          { return fmtDate(d); },
+    };
+}

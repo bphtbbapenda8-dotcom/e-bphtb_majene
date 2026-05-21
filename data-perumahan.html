@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Data Perumahan | e-BPHTB Majene</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="manajemen-data" data-submenu="data-perumahan">
+
+<div class="app-layout">
+    <!-- Desktop Sidebar -->
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+
+    <!-- Mobile Overlay & Sidebar -->
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <p class="topbar-title">Data Perumahan MBR</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content fade-in-up" x-data="dataPerumahanApp()">
+            <!-- Header -->
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem">
+                <div class="page-header" style="margin-bottom:0">
+                    <h2>Manajemen Data Perumahan</h2>
+                    <p>Kelola data perumahan, developer/pemberi hak, dan lokasinya.</p>
+                </div>
+                <div style="display:flex;gap:.5rem">
+                    <button @click="openAddModal()" class="btn-action btn-action-blue" style="padding:.6rem 1rem">
+                        + Tambah Perumahan
+                    </button>
+                    <button @click="fetchData()" class="btn-refresh blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Cari Nama Perumahan</label>
+                        <input type="text" x-model="searchQuery" class="input-field" placeholder="Ketik nama perumahan..." style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="page-card">
+                <div x-show="loading" class="loading-state">
+                    <svg class="spinner spinner-blue" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+
+                <div x-show="!loading && filteredData.length === 0" class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <p>Tidak ada data perumahan ditemukan</p>
+                </div>
+
+                <div x-show="!loading && filteredData.length > 0" class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Perumahan</th>
+                                <th>Pemberi Hak (Developer)</th>
+                                <th>Alamat Pemberi Hak</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(item, i) in filteredData" :key="item.id">
+                                <tr>
+                                    <td class="td-no" x-text="i + 1"></td>
+                                    <td style="font-weight:700;color:#1e40af" x-text="item.nama_perumahan"></td>
+                                    <td x-text="item.pemberi_hak || '-'"></td>
+                                    <td style="font-size:.7rem" x-text="item.alamat_pemberi_hak || '-'"></td>
+                                    <td>
+                                        <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+                                            <!-- Edit -->
+                                            <button @click="openEditModal(item)" class="btn-action btn-action-blue" style="padding:.25rem .5rem;background:#e0f2fe;color:#0284c7">Edit</button>
+                                            
+                                            <!-- Hapus -->
+                                            <button @click="deleteItem(item)" class="btn-action btn-action-red" style="padding:.25rem .5rem;background:#fee2e2;color:#b91c1c">Hapus</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MODAL: ADD / EDIT -->
+            <div x-show="showModal" x-cloak class="modal-overlay" style="z-index:200">
+                <div class="modal-backdrop" @click="showModal=false"></div>
+                <div class="modal-container">
+                    <div class="modal-box" style="max-width:600px">
+                        <div class="modal-header modal-header-blue">
+                            <div>
+                                <h3 x-text="modalMode === 'add' ? 'Tambah Data Perumahan' : 'Edit Data Perumahan'"></h3>
+                                <p>Silakan isi informasi perumahan di bawah ini</p>
+                            </div>
+                            <button @click="showModal=false" class="modal-close-btn">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form @submit.prevent="saveData" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="md:col-span-2">
+                                        <label class="field-label">Nama Perumahan *</label>
+                                        <input type="text" x-model="form.nama_perumahan" class="input-field" required placeholder="Contoh: Perumahan Bintang Jaya">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="field-label">Pemberi Hak (Developer) *</label>
+                                        <input type="text" x-model="form.pemberi_hak" class="input-field" required placeholder="Contoh: PT. Bintang Jaya Property">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="field-label">Alamat Pemberi Hak *</label>
+                                        <textarea x-model="form.alamat_pemberi_hak" class="input-field" required rows="2" placeholder="Alamat lengkap developer"></textarea>
+                                </div>
+                                <div class="flex gap-2 justify-end pt-4 border-t border-slate-100 mt-4">
+                                    <button type="button" @click="showModal=false" class="btn-filter btn-filter-reset">Batal</button>
+                                    <button type="submit" class="btn-filter btn-filter-primary-blue" :disabled="saving">
+                                        <span x-text="saving ? 'Menyimpan...' : 'Simpan Data'"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/wilayah.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/data-perumahan.js"></script>
+<script>initSidebar();</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

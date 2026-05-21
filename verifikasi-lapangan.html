@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Lapangan | e-BPHTB Majene</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="verifikasi" data-submenu="verifikasi-lapangan">
+
+<div class="app-layout">
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <p class="topbar-title">Verifikasi Lapangan</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </header>
+
+        <main class="page-content fade-in-up" x-data="verifikasiApp('lapangan')">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem">
+                <div class="page-header" style="margin-bottom:0">
+                    <h2>Daftar Verifikasi Lapangan WP</h2>
+                    <p>Pemeriksaan kesesuaian lokasi dan objek pajak di lapangan.</p>
+                </div>
+                <button @click="fetchData()" class="btn-refresh blue">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Cari NOP/Nama</label>
+                        <input type="text" x-model="searchQuery" class="input-field" placeholder="Ketik kata kunci..." style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Jenis Pengajuan</label>
+                        <select x-model="filterJenis" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua</option>
+                            <option value="reguler">Reguler</option>
+                            <option value="mbr">MBR</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Status Verifikasi</label>
+                        <select x-model="filterStatus" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua Status</option>
+                            <option value="menunggu">Menunggu</option>
+                            <option value="disetujui">Selesai</option>
+                            <option value="ditolak">Ditolak</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="page-card">
+                <div x-show="loading" class="loading-state">
+                    <svg class="spinner spinner-blue" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+
+                <div x-show="!loading && filteredData.length === 0" class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <p>Tidak ada berkas yang menunggu verifikasi lapangan Anda.</p>
+                </div>
+
+                <div x-show="!loading && filteredData.length > 0" class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Jenis</th>
+                                <th>No Pengajuan</th>
+                                <th>Nama Wajib Pajak</th>
+                                <th>Status Verifikasi Lapangan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(item, i) in filteredData" :key="item.no_pengajuan">
+                                <tr>
+                                    <td class="td-no" x-text="i + 1"></td>
+                                    <td>
+                                        <span class="badge" :class="item.isMbr ? 'badge-purple' : 'badge-blue'" x-text="item.isMbr ? 'MBR' : 'Reguler'"></span>
+                                    </td>
+                                    <td style="font-weight:700;font-family:monospace;color:#475569" x-text="item.no_pengajuan"></td>
+                                    <td>
+                                        <p class="td-name-main" x-text="item.nama"></p>
+                                        <p class="td-name-sub" x-text="item.nik"></p>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-yellow" x-show="!item.verifikasi_lapangan_status || item.verifikasi_lapangan_status === 'menunggu'">Menunggu</span>
+                                        <span class="badge badge-green" x-show="item.verifikasi_lapangan_status === 'disetujui'">Selesai</span>
+                                        <span class="badge badge-red" x-show="item.verifikasi_lapangan_status === 'ditolak'">Ditolak</span>
+                                    </td>
+                                    <td>
+                                        <button @click="openModal(item)" class="btn-action btn-action-blue">Periksa Lokasi</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- MODAL DETAIL LAPANGAN -->
+            <div x-show="showModal" x-cloak class="modal-overlay" style="z-index:200">
+                <div class="modal-backdrop" @click="showModal=false"></div>
+                <div class="modal-container">
+                    <div class="modal-box modal-box-lg">
+                        <div class="modal-header modal-header-blue">
+                            <div>
+                                <h3>Periksa Kesesuaian Lokasi <span x-text="selectedBerkas?.isMbr ? '(MBR)' : '(Reguler)'"></span></h3>
+                                <p x-text="'No: ' + (selectedBerkas?.no_pengajuan || '-')"></p>
+                            </div>
+                            <button @click="showModal=false" class="modal-close-btn">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Koordinat Peta -->
+                            <div class="modal-section" x-show="selectedBerkas?.latitude && selectedBerkas?.longitude">
+                                <div class="modal-section-title">Titik Koordinat (Peta)</div>
+                                <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+                                    <div class="modal-field" style="flex:1"><div class="modal-field-label">Latitude</div><div class="modal-field-value mono" x-text="selectedBerkas?.latitude"></div></div>
+                                    <div class="modal-field" style="flex:1"><div class="modal-field-label">Longitude</div><div class="modal-field-value mono" x-text="selectedBerkas?.longitude"></div></div>
+                                    <a :href="'https://www.google.com/maps?q=' + selectedBerkas?.latitude + ',' + selectedBerkas?.longitude" target="_blank"
+                                        style="background:#16a34a;color:#fff;font-size:.75rem;font-weight:700;padding:.5rem 1rem;border-radius:.65rem;text-decoration:none;white-space:nowrap">
+                                        📍 Buka di Google Maps
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="modal-section" x-show="!selectedBerkas?.latitude">
+                                <p style="font-size:0.8rem;color:#64748b">Wajib Pajak tidak melampirkan titik koordinat.</p>
+                            </div>
+
+                            <div class="modal-section">
+                                <div class="modal-section-title">Detail Luasan</div>
+                                <div style="display:flex;gap:1rem;">
+                                    <div class="modal-field" style="flex:1"><div class="modal-field-label">Luas Bumi (Tanah)</div><div class="modal-field-value"><span x-text="selectedBerkas?.luas_bumi"></span> m²</div></div>
+                                    <div class="modal-field" style="flex:1"><div class="modal-field-label">Luas Bangunan</div><div class="modal-field-value"><span x-text="selectedBerkas?.luas_bangunan"></span> m²</div></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Aksi -->
+                            <template x-if="!selectedBerkas?.verifikasi_lapangan_status || selectedBerkas?.verifikasi_lapangan_status === 'menunggu'">
+                                <div class="mt-6 border-t border-slate-200 pt-4 flex gap-3 justify-end">
+                                    <button @click="tolakBerkas()" class="btn-action btn-action-red" style="padding:.5rem 1rem">Tolak (Lokasi Tidak Sesuai)</button>
+                                    <button @click="setujuiBerkas()" class="btn-action btn-action-green" style="padding:.5rem 1rem">Selesai Verifikasi Lapangan</button>
+                                </div>
+                            </template>
+                            <template x-if="selectedBerkas?.verifikasi_lapangan_status === 'disetujui'">
+                                <div class="mt-6 bg-green-50 text-green-700 p-4 rounded-xl border border-green-200 text-center font-bold">
+                                    Verifikasi Lapangan telah Anda selesaikan.
+                                </div>
+                            </template>
+                            <template x-if="selectedBerkas?.verifikasi_lapangan_status === 'ditolak'">
+                                <div class="mt-6 bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-center font-bold">
+                                    Anda telah menolak kesesuaian lapangan berkas ini.
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/verifikasi.js"></script>
+<script>initSidebar();</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

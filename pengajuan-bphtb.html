@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengajuan BPHTB | e-BPHTB Online — BAPENDA Majene</title>
+    <meta name="description" content="Formulir pengajuan BPHTB online — BAPENDA Kabupaten Majene.">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/form.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="pengajuan" data-submenu="bphtb">
+
+<div class="app-layout">
+    <!-- Desktop Sidebar -->
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+
+    <!-- Mobile Overlay & Sidebar -->
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Mobile Topbar -->
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <p class="topbar-title">Pengajuan BPHTB</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content fade-in-up" x-data="bphtbFormApp()">
+            <div class="page-header">
+                <h2>Pengajuan BPHTB</h2>
+                <p>Formulir Surat Pemberitahuan Pajak Daerah (SPTPD) BPHTB Online</p>
+            </div>
+
+            <div class="page-card">
+                <div class="card-header-blue">
+                    <h3>Formulir Pendaftaran BPHTB</h3>
+                    <p>Isi semua data dengan lengkap dan benar sesuai dokumen asli</p>
+                </div>
+
+                <form @submit.prevent="openPreview()" class="form-body space-y-8">
+
+                    <!-- Identitas Wajib Pajak -->
+                    <div class="form-section">
+                        <div class="form-section-title section-title-blue"><h4>Identitas Wajib Pajak</h4></div>
+                        <div class="form-grid form-grid-2">
+                            <div>
+                                <label class="field-label">NIK (16 Digit) *</label>
+                                <input type="text" maxlength="16" @input="onNikInput($event)" x-model="form.nik" required class="input-field" placeholder="Masukkan 16 digit NIK">
+                            </div>
+                            <div>
+                                <label class="field-label">Nama Lengkap *</label>
+                                <input type="text" x-model="form.nama" required class="input-field uppercase" placeholder="Sesuai KTP">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="field-label">Alamat Wajib Pajak</label>
+                                <textarea x-model="form.alamatWp" class="input-field" rows="2" placeholder="Jl. ..."></textarea>
+                            </div>
+                            <div>
+                                <label class="field-label">Email *</label>
+                                <input type="email" x-model="form.email" required class="input-field" placeholder="contoh@email.com">
+                            </div>
+                            <div>
+                                <label class="field-label">Nomor WhatsApp *</label>
+                                <input type="text" @input="onWaInput($event)" x-model="form.wa" required class="input-field" placeholder="08xxxxxxxxxx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Objek Pajak -->
+                    <div class="form-section">
+                        <div class="form-section-title section-title-blue"><h4>Detail Objek Pajak</h4></div>
+                        <div class="form-grid form-grid-2">
+                            <div class="col-span-2">
+                                <label class="field-label">Nomor Objek Pajak (NOP PBB) *</label>
+                                <div class="nop-row mt-1">
+                                    <input type="text" id="nop_input" required class="input-field" placeholder="76.02.xxx...">
+                                    <select x-model="form.nop_type" class="input-field">
+                                        <option value="sendiri">NOP Sendiri</option>
+                                        <option value="induk">NOP Induk</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="field-label">Alamat Objek Pajak</label>
+                                <textarea x-model="form.alamatOp" class="input-field" rows="2"></textarea>
+                            </div>
+                            <div>
+                                <label class="field-label">Kecamatan *</label>
+                                <select x-model="form.kecamatan" @change="onKecamatanChange()" required class="input-field">
+                                    <option value="">Pilih Kecamatan</option>
+                                    <template x-for="k in kecamatanList" :key="k">
+                                        <option :value="k" x-text="k"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="field-label">Kelurahan / Desa *</label>
+                                <select x-model="form.kelurahan" required :disabled="!form.kecamatan" class="input-field">
+                                    <option value="">Pilih Kelurahan</option>
+                                    <template x-for="k in listKelurahan" :key="k">
+                                        <option :value="k" x-text="k"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <!-- Map -->
+                            <div class="col-span-2">
+                                <label class="field-label">Tandai Lokasi pada Peta</label>
+                                <div id="map" style="margin-top:.5rem"></div>
+                                <div class="coords-row">
+                                    <div>
+                                        <label class="field-label" style="font-size:.6rem">Latitude</label>
+                                        <input readonly x-model="form.latitude" class="input-field text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="field-label" style="font-size:.6rem">Longitude</label>
+                                        <input readonly x-model="form.longitude" class="input-field text-xs">
+                                    </div>
+                                    <p class="coord-note">*Klik pada peta untuk menandai lokasi objek pajak</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="field-label">Luas Bumi (m²) *</label>
+                                <input type="number" min="0" x-model.number="form.luasBumi" required class="input-field">
+                            </div>
+                            <div>
+                                <label class="field-label">Luas Bangunan (m²)</label>
+                                <input type="number" min="0" x-model.number="form.luasBangunan" class="input-field" placeholder="0 jika tanah kosong">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Perhitungan -->
+                    <div class="form-section">
+                        <div class="form-section-title section-title-blue"><h4>Parameter Perhitungan BPHTB</h4></div>
+                        <div class="calc-section">
+                            <div class="form-grid form-grid-2">
+                                <div>
+                                    <label class="field-label">NJOP Bumi / m²</label>
+                                    <input type="text" x-model="dispNjopBumi" @input="onRpInput($event,'njopBumi')" class="input-field mt-1" placeholder="Rp 0">
+                                </div>
+                                <div>
+                                    <label class="field-label">NJOP Bangunan / m²</label>
+                                    <input type="text" x-model="dispNjopBangunan" @input="onRpInput($event,'njopBangunan')" class="input-field mt-1" placeholder="Rp 0">
+                                </div>
+                                <div>
+                                    <label class="field-label" style="color:#2563eb">Total NJOP (Otomatis)</label>
+                                    <div class="computed-field mt-1" x-text="fmtCurr(totalNjop)"></div>
+                                </div>
+                                <div>
+                                    <label class="field-label" style="color:#16a34a">Nilai Transaksi / Harga Pasar</label>
+                                    <input type="text" x-model="dispTransaksi" @input="onRpInput($event,'nilaiTransaksi')" class="input-field mt-1" placeholder="Rp 0">
+                                </div>
+                                <div>
+                                    <label class="field-label">Jenis Perolehan Hak</label>
+                                    <select x-model="form.jenisPerolehan" class="input-field mt-1">
+                                        <option value="jualbeli">JUAL BELI</option>
+                                        <option value="hibah">HIBAH / PEMBERIAN</option>
+                                        <option value="waris">WARIS / HIBAH WASIAT</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="field-label">Notaris / PPAT *</label>
+                                    <select x-model="form.notaris" required class="input-field mt-1">
+                                        <option value="">-- Pilih Notaris --</option>
+                                        <template x-for="n in listNotaris" :key="n">
+                                            <option :value="n" x-text="n"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Estimasi -->
+                            <div class="calc-box">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+                                    <span class="calc-box-label">Estimasi Pajak Terhutang</span>
+                                    <span class="badge badge-blue" style="font-size:.65rem">BPHTB 5%</span>
+                                </div>
+                                <div class="calc-box-value" x-text="fmtCurr(estimasiBphtb)"></div>
+                                <div class="calc-box-meta">
+                                    NPOPTKP: <span style="color:#94a3b8" x-text="fmtCurr(npoptkp)"></span>
+                                    &nbsp;|&nbsp;
+                                    NPO: <span style="color:#94a3b8" x-text="fmtCurr(Math.max(totalNjop, form.nilaiTransaksi))"></span>
+                                </div>
+                                <p class="calc-box-note">*Estimasi. Perhitungan akhir ditetapkan oleh petugas Bapenda.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lampiran -->
+                    <div class="form-section">
+                        <div class="form-section-title section-title-red"><h4>Lampiran Dokumen (PDF, Maks 2MB)</h4></div>
+                        <div class="form-grid form-grid-3" style="margin-top:.75rem">
+                            <template x-for="[key, label] in [['ktp','KTP / KK'], ['sertifikat','Sertifikat Tanah'], ['pendukung','SPPT / AJB / Waris']]" :key="key">
+                                <div>
+                                    <label class="field-label" x-text="label + (key!=='pendukung' ? ' *' : '')"></label>
+                                    <div class="file-zone mt-1" :class="files[key] ? 'uploaded' : ''">
+                                        <input type="file" accept="application/pdf" @change="handleFile($event, key)">
+                                        <template x-if="!files[key]">
+                                            <div class="file-zone-icon">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                                                <p class="file-zone-label">Pilih PDF</p>
+                                            </div>
+                                        </template>
+                                        <template x-if="files[key]">
+                                            <div style="width:100%;text-align:center;padding:0 4px">
+                                                <div class="file-check-icon">
+                                                    <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                                </div>
+                                                <p class="file-zone-name" x-text="files[key].name"></p>
+                                                <p class="file-zone-size" x-text="files[key].size"></p>
+                                                <button type="button" class="file-zone-remove" @click.stop="removeFile(key)">Hapus</button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit-blue">
+                        Review &amp; Kirim Pengajuan
+                    </button>
+                </form>
+            </div>
+
+            <!-- ── MODAL PREVIEW ── -->
+            <div x-show="showPreview" x-cloak class="modal-overlay" style="z-index:200">
+                <div class="modal-backdrop" @click="!loading && (showPreview=false)"></div>
+                <div class="modal-container">
+                    <div class="modal-box modal-box-sm" style="padding:2rem">
+                        <div style="text-align:center;margin-bottom:1.25rem">
+                            <div class="confirm-icon-wrap blue" style="display:inline-flex">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <h3 style="font-size:1.125rem;font-weight:900;color:#1e293b;margin-top:.5rem">Konfirmasi Pengajuan BPHTB</h3>
+                            <p style="font-size:.75rem;color:#64748b">Periksa kembali data sebelum mengirim</p>
+                        </div>
+                        <div class="confirm-summary">
+                            <div class="preview-row">
+                                <span class="preview-row-label">Nama WP</span>
+                                <span class="preview-row-value" x-text="form.nama"></span>
+                            </div>
+                            <div class="preview-row">
+                                <span class="preview-row-label">Kecamatan</span>
+                                <span class="preview-row-value" x-text="form.kecamatan"></span>
+                            </div>
+                            <div class="preview-row">
+                                <span class="preview-row-label">Jenis Perolehan</span>
+                                <span class="preview-row-value" style="color:#1d4ed8;text-transform:uppercase" x-text="form.jenisPerolehan"></span>
+                            </div>
+                            <div class="preview-row" style="margin-top:.5rem;border-bottom:none">
+                                <span class="confirm-total-label">Estimasi BPHTB</span>
+                                <span class="confirm-total-value" x-text="fmtCurr(estimasiBphtb)"></span>
+                            </div>
+                        </div>
+                        <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
+                            <button @click="submitData()" :disabled="loading" class="btn-confirm blue">
+                                <template x-if="!loading"><span>✓ Kirim Sekarang</span></template>
+                                <template x-if="loading">
+                                    <span style="display:flex;align-items:center;justify-content:center;gap:.5rem">
+                                        <svg class="spinner" style="width:18px;height:18px" fill="none" viewBox="0 0 24 24">
+                                            <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                            <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                        </svg>
+                                        Mengirim...
+                                    </span>
+                                </template>
+                            </button>
+                            <button @click="showPreview=false" :disabled="loading" class="btn-back-modal">← Kembali Edit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/imask"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/wilayah.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/map.js"></script>
+<script src="js/bphtb-form.js"></script>
+<script>initSidebar();</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

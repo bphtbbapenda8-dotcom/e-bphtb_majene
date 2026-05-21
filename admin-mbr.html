@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akses Admin — BPHTB MBR | e-BPHTB Online — BAPENDA Majene</title>
+    <meta name="description" content="Akses Admin BAPENDA Kabupaten Majene — Pengajuan BPHTB MBR secara digital.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/form.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="admin" data-submenu="admin-mbr">
+
+<div class="app-layout">
+    <!-- Desktop Sidebar -->
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+
+    <!-- Mobile Overlay & Sidebar -->
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Mobile Topbar -->
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <p class="topbar-title">Admin — BPHTB MBR</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content fade-in-up" x-data="adminApp('mbr')">
+            <!-- Header -->
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem">
+                <div class="page-header" style="margin-bottom:0">
+                    <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+                        <h2>Admin — BPHTB MBR</h2>
+                        <span class="badge badge-green">MBR</span>
+                    </div>
+                    <p>Kelola status berkas, nilai ketetapan pajak, nomor validasi, denda, dan STPD MBR</p>
+                </div>
+                <button @click="fetchData()" class="btn-refresh green">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-field" style="flex:2">
+                        <label class="field-label" style="font-size:.65rem">Cari WP / NIK / No. Pengajuan</label>
+                        <input type="text" x-model="searchWP" @input.debounce.300ms="fetchData()" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem" placeholder="Masukkan nama, NIK, atau nomor pengajuan...">
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Filter Notaris</label>
+                        <select x-model="filterNotaris" @change="fetchData()" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua Notaris</option>
+                            <template x-for="n in listNotaris" :key="n">
+                                <option :value="n" x-text="n"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Filter Status Berkas</label>
+                        <select x-model="filterStatus" @change="fetchData()" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua Status</option>
+                            <option value="Berkas sedang diverifikasi">Berkas sedang diverifikasi</option>
+                            <option value="Berkas diterima">Berkas diterima</option>
+                            <option value="Pembayaran">Pembayaran</option>
+                            <option value="Pembayaran sedang diverifikasi">Pembayaran sedang diverifikasi</option>
+                            <option value="Selesai">Selesai</option>
+                            <option value="Berkas ditolak">Berkas ditolak</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button @click="resetFilter()" class="btn-filter btn-filter-reset">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="page-card">
+                <!-- Loading -->
+                <div x-show="loading" class="loading-state">
+                    <svg class="spinner spinner-green" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+
+                <!-- Empty -->
+                <div x-show="!loading && data.length === 0" class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <p>Belum ada data pengajuan MBR</p>
+                </div>
+
+                <!-- Table -->
+                <div x-show="!loading && data.length > 0" class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>No Pengajuan</th>
+                                <th>Nama WP</th>
+                                <th>Pekerjaan</th>
+                                <th>Status Berkas</th>
+                                <th>Nilai Pajak</th>
+                                <th>STPD denda</th>
+                                <th>Notaris / PPAT</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(item, i) in data" :key="item.no_pengajuan">
+                                <tr>
+                                    <td class="td-no" x-text="i + 1"></td>
+                                    <td style="font-weight:700;font-size:.7rem;font-family:monospace;color:#475569" x-text="item.no_pengajuan"></td>
+                                    <td>
+                                        <p class="td-name-main" x-text="item.nama"></p>
+                                        <p class="td-name-sub" x-text="item.nik"></p>
+                                    </td>
+                                    <td x-text="item.pekerjaan || '-'"></td>
+                                    <td>
+                                        <span class="badge" :class="statusBadge(item.alur_berkas)" x-text="item.alur_berkas || 'Menunggu'"></span>
+                                    </td>
+                                    <td class="td-currency" x-text="item.pajak ? fmtCurr(item.pajak) : '-'"></td>
+                                    <td>
+                                        <template x-if="item.url_berkas_stpd">
+                                            <span class="badge badge-red" style="font-size:.65rem" x-text="fmtCurr(item.stpd_denda)"></span>
+                                        </template>
+                                        <template x-if="!item.url_berkas_stpd">
+                                            <span style="color:#94a3b8;font-size:.7rem">-</span>
+                                        </template>
+                                    </td>
+                                    <td style="font-size:.725rem;color:#475569;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" x-text="item.notaris || '-'"></td>
+                                    <td>
+                                        <button @click="openManageModal(item)" class="btn-action btn-action-green">Kelola</button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <div class="table-footer">
+                        <p class="table-footer-count">Menampilkan <span x-text="data.length"></span> data MBR</p>
+                        <p class="table-footer-note">Terbaru di atas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Kelola & Rincian MBR -->
+            <div x-show="showManageModal" x-cloak class="modal-overlay" style="z-index:200">
+                <div class="modal-backdrop" @click="!loading && (showManageModal=false)"></div>
+                <div class="modal-container">
+                    <div class="modal-box modal-box-lg">
+                        <div class="modal-header modal-header-green">
+                            <div>
+                                <h3>Kelola Pengajuan BPHTB MBR</h3>
+                                <p x-text="'No: ' + (selectedBerkas?.no_pengajuan || '-')"></p>
+                            </div>
+                            <button @click="showManageModal=false" :disabled="loading" class="modal-close-btn">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Tombol Download Surat Keterangan Pembebasan BPHTB (Bisa diunduh admin kapan saja) -->
+                            <div style="background:linear-gradient(135deg,#047857,#059669);border-radius:.85rem;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
+                                <div>
+                                    <div style="color:#d1fae5;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Khusus Admin</div>
+                                    <div style="color:#fff;font-weight:900;font-size:.9rem;margin-top:.2rem">Surat Keterangan Pembebasan BPHTB</div>
+                                    <div style="color:#a7f3d0;font-size:.7rem;margin-top:.15rem">Dapat diunduh setelah pengajuan masuk</div>
+                                </div>
+                                <button
+                                    @click="openSuratModal()"
+                                    style="background:#fff;color:#059669;font-weight:900;font-size:.8rem;border:none;border-radius:.65rem;padding:.6rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)"
+                                >
+                                    <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    Unduh Surat Keterangan
+                                </button>
+                            </div>
+
+                            <!-- Tombol Download Berita Acara (jika kedua verifikasi sudah disetujui) -->
+                            <template x-if="selectedBerkas?.verifikasi_berkas_status === 'disetujui' && selectedBerkas?.verifikasi_lapangan_status === 'disetujui'">
+                                <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:.85rem;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
+                                    <div>
+                                        <div style="color:#bfdbfe;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">✓ Kedua Verifikasi Selesai</div>
+                                        <div style="color:#fff;font-weight:900;font-size:.9rem;margin-top:.2rem">Berita Acara Verifikasi Lapangan</div>
+                                        <div style="color:#93c5fd;font-size:.7rem;margin-top:.15rem">Siap diunduh &amp; ditandatangani</div>
+                                    </div>
+                                    <button
+                                        @click="generateBeritaAcaraMBR(selectedBerkas)"
+                                        style="background:#fff;color:#1d4ed8;font-weight:900;font-size:.8rem;border:none;border-radius:.65rem;padding:.6rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)"
+                                    >
+                                        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        Unduh Berita Acara
+                                    </button>
+                                </div>
+                            </template>
+
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem">
+                                
+                                <!-- Column 1: Read-only Taxpayer Details -->
+                                <div style="display:flex;flex-direction:column;gap:1rem">
+                                    <!-- Identitas WP -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Identitas Wajib Pajak (MBR)</div>
+                                        <div class="modal-grid-2">
+                                            <div class="modal-field"><div class="modal-field-label">Tanggal Register</div><div class="modal-field-value font-bold text-blue-900" x-text="selectedBerkas?.tanggal_register ? new Date(selectedBerkas.tanggal_register).toLocaleDateString('id-ID') : '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">NIK</div><div class="modal-field-value mono" x-text="selectedBerkas?.nik || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Nama</div><div class="modal-field-value" x-text="selectedBerkas?.nama || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Tempat, Tgl Lahir</div><div class="modal-field-value" x-text="(selectedBerkas?.tempat_lahir || '') + (selectedBerkas?.tanggal_lahir ? ', ' + new Date(selectedBerkas.tanggal_lahir).toLocaleDateString('id-ID') : '') || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat WP</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.alamat_wp || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Pekerjaan</div><div class="modal-field-value" x-text="selectedBerkas?.pekerjaan || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Penghasilan</div><div class="modal-field-value text-green-700 font-bold" x-text="selectedBerkas?.penghasilan ? fmtCurr(selectedBerkas.penghasilan) : '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Email</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.email || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">WhatsApp</div><div class="modal-field-value" x-text="selectedBerkas?.wa || '-'"></div></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Data Perbankan / Kredit -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Data Kredit & Perbankan</div>
+                                        <div class="modal-grid-2">
+                                            <div class="modal-field"><div class="modal-field-label">No Perjanjian Kredit</div><div class="modal-field-value font-semibold text-blue-900" x-text="selectedBerkas?.nomor_perjanjian_kredit || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Bank Penyalur</div><div class="modal-field-value font-semibold text-blue-900" x-text="selectedBerkas?.bank || '-'"></div></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Objek Pajak -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Data Objek Pajak</div>
+                                        <div class="modal-grid-2">
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">NOP PBB</div><div class="modal-field-value mono" x-text="selectedBerkas?.nop || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Letak Perumahan MBR</div><div class="modal-field-value font-bold text-blue-900" x-text="selectedBerkas?.letak_tanah_bangunan || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Blok / Kavling</div><div class="modal-field-value" x-text="selectedBerkas?.blok_perumahan || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">No. SHGB</div><div class="modal-field-value mono" x-text="selectedBerkas?.no_shgb || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Kecamatan</div><div class="modal-field-value" x-text="selectedBerkas?.kecamatan || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Kelurahan</div><div class="modal-field-value" x-text="selectedBerkas?.kelurahan || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat Objek</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.alamat_op || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Luas Bumi (Tanah)</div><div class="modal-field-value"><span x-text="selectedBerkas?.luas_bumi || 0"></span> m²</div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Luas Bangunan</div><div class="modal-field-value"><span x-text="selectedBerkas?.luas_bangunan || 0"></span> m²</div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Pemberi Hak (Developer)</div><div class="modal-field-value" x-text="selectedBerkas?.pemberi_hak || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat Pemberi Hak</div><div class="modal-field-value" style="font-size:.775rem" x-text="selectedBerkas?.alamat_pemberi_hak || '-'"></div></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Perhitungan Dasar -->
+                                    <div class="modal-section modal-section-dark" style="background:#064e3b">
+                                        <div class="modal-section-title" style="color:#a7f3d0">Detail Nilai & Pajak MBR</div>
+                                        <div class="modal-grid-2">
+                                            <div class="modal-field"><div class="modal-field-label" style="color:#a7f3d0">Harga Transaksi</div><div class="modal-field-value dark font-bold text-white" x-text="fmtCurr(selectedBerkas?.nilai_transaksi || 0)"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label" style="color:#a7f3d0">Notaris / PPAT</div><div class="modal-field-value dark" style="font-size:.8rem" x-text="selectedBerkas?.notaris || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label" style="color:#a7f3d0">Ketetapan Pajak BPHTB</div><div class="modal-field-value text-green-300 font-extrabold text-lg">RP 0 (Bebas Pajak / Gratis)</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Column 2: Documents and Administrative Actions -->
+                                <div style="display:flex;flex-direction:column;gap:1rem">
+                                    <!-- Dokumen Lampiran MBR -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Lampiran Dokumen</div>
+                                        <template x-for="[label, key] in [['KTP / KK','url_ktp'],['Sertifikat Tanah','url_sertifikat'],['Dokumen Pendukung','url_pendukung'],['Surat Keterangan MBR','url_surat_mbr'],['Surat Perjanjian Kredit','url_perjanjian_kredit']]" :key="key">
+                                            <template x-if="selectedBerkas?.[key]">
+                                                <a :href="selectedBerkas[key]" target="_blank" class="doc-link" style="margin-bottom:.35rem">
+                                                    <div class="doc-link-icon"><svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg></div>
+                                                    <span class="doc-link-label" style="font-size:.775rem" x-text="label"></span>
+                                                    <div class="doc-link-arrow"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></div>
+                                                </a>
+                                            </template>
+                                        </template>
+
+                                        <!-- Bukti Pembayaran Wajib Pajak -->
+                                        <template x-if="selectedBerkas?.url_bukti_bayar">
+                                            <a :href="selectedBerkas.url_bukti_bayar" target="_blank" class="doc-link" style="background:#ecfdf5;border-color:#a7f3d0;margin-top:.75rem">
+                                                <div class="doc-link-icon" style="background:#d1fae5"><svg fill="currentColor" style="color:#059669" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg></div>
+                                                <span class="doc-link-label" style="font-size:.775rem;color:#047857;font-weight:700">Bukti Pembayaran Wajib Pajak</span>
+                                                <div class="doc-link-arrow"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></div>
+                                            </a>
+                                        </template>
+                                    </div>
+
+                                    <!-- Tindakan Administratif -->
+                                    <div class="modal-section" style="background:#fef3c7;border:1.5px solid #fde68a">
+                                        <div class="modal-section-title" style="color:#78350f;border-color:#fde68a">Tindakan Administratif</div>
+                                        
+                                        <div class="form-body" style="padding:0;background:none;border:none">
+                                            <!-- Status Berkas Dropdown -->
+                                            <div class="modal-field">
+                                                <label class="field-label" style="color:#92400e">Status Alur Berkas *</label>
+                                                <select x-model="adminForm.alur_berkas" class="input-field" style="background:#fff;border-color:#f59e0b">
+                                                    <option value="Berkas sedang diverifikasi">Berkas sedang diverifikasi</option>
+                                                    <option value="Berkas diterima">Berkas diterima</option>
+                                                    <option value="Pembayaran">Pembayaran</option>
+                                                    <option value="Pembayaran sedang diverifikasi">Pembayaran sedang diverifikasi</option>
+                                                    <option value="Selesai">Selesai</option>
+                                                    <option value="Berkas ditolak">Berkas ditolak</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Nilai Pajak Terhutang (Tampil untuk Pembayaran/Selesai) -->
+                                            <template x-if="['Pembayaran', 'Pembayaran sedang diverifikasi', 'Selesai'].includes(adminForm.alur_berkas)">
+                                                <div class="modal-field" style="margin-top:.75rem">
+                                                    <label class="field-label" style="color:#92400e">Nilai Ketetapan Pajak MBR (Rp) *</label>
+                                                    <input type="text" x-model="adminForm.dispPajak" @input="onPajakInput($event)" class="input-field" placeholder="Rp 0" style="background:#fff;border-color:#f59e0b">
+                                                </div>
+                                            </template>
+
+                                            <!-- Upload Resi Pembayaran (Tampil hanya untuk status Pembayaran) -->
+                                            <template x-if="adminForm.alur_berkas === 'Pembayaran'">
+                                                <div class="modal-field" style="margin-top:.75rem">
+                                                    <label class="field-label" style="color:#92400e">Upload Resi Pembayaran (PDF, Maks 2MB) *</label>
+                                                    <input type="file" accept="application/pdf" @change="handleResiFile($event)" class="input-field" style="background:#fff;border-color:#f59e0b;font-size:.75rem;padding:.4rem">
+                                                    <template x-if="selectedBerkas?.link_resi">
+                                                        <a :href="selectedBerkas.link_resi" target="_blank" class="text-xs text-orange-600 font-bold underline mt-1 block">Lihat Resi Saat Ini</a>
+                                                    </template>
+                                                </div>
+                                            </template>
+
+                                            <!-- Nomor Validasi (Tampil untuk Selesai) -->
+                                            <template x-if="adminForm.alur_berkas === 'Selesai'">
+                                                <div class="modal-field" style="margin-top:.75rem">
+                                                    <label class="field-label" style="color:#92400e">Nomor Validasi BPHTB *</label>
+                                                    <input type="text" x-model="adminForm.no_validasi" class="input-field" placeholder="Contoh: VAL-76..." style="background:#fff;border-color:#f59e0b" required>
+                                                </div>
+                                            </template>
+
+                                            <!-- Upload Surat Keterangan Selesai (Tampil untuk Selesai) -->
+                                            <template x-if="adminForm.alur_berkas === 'Selesai'">
+                                                <div class="modal-field" style="margin-top:.75rem">
+                                                    <label class="field-label" style="color:#92400e">Upload Surat Keterangan (TTD) *</label>
+                                                    <input type="file" accept="application/pdf" @change="handleSuratSelesaiFile($event)" class="input-field" style="background:#fff;border-color:#f59e0b;font-size:.75rem;padding:.4rem">
+                                                    <template x-if="selectedBerkas?.url_surat_selesai">
+                                                        <a :href="selectedBerkas.url_surat_selesai" target="_blank" class="text-xs text-green-600 font-bold underline mt-1 block">Lihat Surat Keterangan Saat Ini</a>
+                                                    </template>
+                                                </div>
+                                            </template>
+
+                                            <!-- Catatan Penolakan (Tampil untuk Berkas ditolak) -->
+                                            <template x-if="adminForm.alur_berkas === 'Berkas ditolak'">
+                                                <div class="modal-field" style="margin-top:.75rem">
+                                                    <label class="field-label" style="color:#92400e">Alasan Penolakan / Catatan *</label>
+                                                    <textarea x-model="adminForm.catatan_penolakan" class="input-field" rows="3" placeholder="Tulis alasan dokumen ditolak..." style="background:#fff;border-color:#f59e0b" required></textarea>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Panel Surat Tagihan Pajak Daerah (STPD) MBR -->
+                                    <div class="modal-section" style="background:#fff1f2;border:1.5px solid #fecdd3">
+                                        <div class="modal-section-title" style="color:#9f1239;border-color:#fecdd3">
+                                            <div style="display:flex;align-items:center;gap:.5rem">
+                                                <input type="checkbox" x-model="adminForm.isStpdActive" id="stpd-mbr-active-cb" style="width:1rem;height:1rem">
+                                                <label for="stpd-mbr-active-cb" style="font-weight:900;cursor:pointer">Terbitkan STPD MBR (Denda)</label>
+                                            </div>
+                                        </div>
+
+                                        <template x-if="adminForm.isStpdActive">
+                                            <div class="form-body" style="padding:0;background:none;border:none;margin-top:.75rem">
+                                                <!-- Nilai Denda STPD -->
+                                                <div class="modal-field">
+                                                    <label class="field-label" style="color:#9f1239">Nilai Denda STPD MBR (Rp) *</label>
+                                                    <input type="text" x-model="adminForm.dispStpdDenda" @input="onStpdDendaInput($event)" class="input-field" placeholder="Rp 100.000" style="background:#fff;border-color:#fda4af">
+                                                </div>
+
+                                                <!-- Upload Berkas STPD PDF -->
+                                                <div class="modal-field" style="margin-top:.5rem">
+                                                    <label class="field-label" style="color:#9f1239">Upload Berkas STPD (PDF) *</label>
+                                                    <input type="file" accept="application/pdf" @change="handleSTPDFile($event)" class="input-field" style="background:#fff;border-color:#fda4af;font-size:.75rem;padding:.4rem">
+                                                    <template x-if="selectedBerkas?.url_berkas_stpd">
+                                                        <a :href="selectedBerkas.url_berkas_stpd" target="_blank" class="text-xs text-rose-600 font-bold underline mt-1 block">Lihat Berkas STPD Saat Ini</a>
+                                                    </template>
+                                                </div>
+
+                                                <!-- Upload Resi Pembayaran STPD PDF -->
+                                                <div class="modal-field" style="margin-top:.5rem">
+                                                    <label class="field-label" style="color:#9f1239">Upload Resi Pembayaran STPD (PDF) *</label>
+                                                    <input type="file" accept="application/pdf" @change="handleSTPDResiFile($event)" class="input-field" style="background:#fff;border-color:#fda4af;font-size:.75rem;padding:.4rem">
+                                                    <template x-if="selectedBerkas?.url_resi_stpd">
+                                                        <a :href="selectedBerkas.url_resi_stpd" target="_blank" class="text-xs text-rose-600 font-bold underline mt-1 block">Lihat Resi STPD Saat Ini</a>
+                                                    </template>
+                                                </div>
+
+                                                <!-- Status STPD -->
+                                                <div class="modal-field" style="margin-top:.5rem">
+                                                    <label class="field-label" style="color:#9f1239">Status Pembayaran STPD MBR</label>
+                                                    <select x-model="adminForm.stpd_status" class="input-field" style="background:#fff;border-color:#fda4af">
+                                                        <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
+                                                        <option value="Pembayaran sedang diverifikasi">Pembayaran sedang diverifikasi</option>
+                                                        <option value="Selesai">Selesai</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Bukti Bayar STPD Wajib Pajak -->
+                                                <template x-if="selectedBerkas?.url_bukti_stpd">
+                                                    <a :href="selectedBerkas.url_bukti_stpd" target="_blank" class="doc-link" style="background:#ecfdf5;border-color:#a7f3d0;margin-top:.75rem">
+                                                        <div class="doc-link-icon" style="background:#d1fae5"><svg fill="currentColor" style="color:#059669" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg></div>
+                                                        <span class="doc-link-label" style="font-size:.775rem;color:#047857;font-weight:700">Bukti Bayar STPD WP</span>
+                                                        <div class="doc-link-arrow"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></div>
+                                                    </a>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Submit & Close Buttons -->
+                                    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem">
+                                        <button type="button" @click="showManageModal=false" :disabled="loading" class="btn-filter btn-filter-reset" style="padding:.5rem 1rem">Batal</button>
+                                        <button type="button" @click="saveAdminChanges()" :disabled="loading" class="btn-filter btn-filter-primary-green" style="padding:.5rem 1.25rem">
+                                            <template x-if="!loading"><span>Simpan Perubahan</span></template>
+                                            <template x-if="loading"><span>Menyimpan...</span></template>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Pengaturan Surat Keterangan -->
+            <div x-show="showSuratModal" class="modal-overlay" style="display:none;z-index:999">
+                <div class="modal-content" style="max-width:400px;border-top:4px solid #059669">
+                    <div class="modal-header">
+                        <h2 class="modal-title" style="color:#064e3b">Pengaturan Surat Keterangan</h2>
+                        <button @click="showSuratModal=false" class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body" style="padding:1.5rem">
+                        <div style="margin-bottom:1rem">
+                            <label class="field-label" style="font-weight:700;color:#065f46">Tanggal Surat / Register</label>
+                            <input type="date" x-model="suratTanggal" class="input-field" style="width:100%;margin-top:.4rem;padding:.6rem;border:1px solid #a7f3d0;border-radius:.5rem">
+                        </div>
+                        <div style="margin-bottom:1.5rem">
+                            <label class="field-label" style="font-weight:700;color:#065f46">Nomor Urut Surat Terakhir + 1</label>
+                            <input type="number" x-model="suratNoUrut" class="input-field" style="width:100%;margin-top:.4rem;padding:.6rem;border:1px solid #a7f3d0;border-radius:.5rem">
+                            <p style="font-size:0.7rem;color:#047857;margin-top:.3rem">*(Nomor otomatis disarankan berdasar urutan terakhir di sistem)</p>
+                        </div>
+                        <div style="display:flex;gap:.5rem;justify-content:flex-end">
+                            <button type="button" @click="showSuratModal=false" class="btn-filter btn-filter-reset" style="padding:.5rem 1rem">Batal</button>
+                            <button type="button" @click="confirmGenerateSurat()" :disabled="loading" class="btn-filter btn-filter-primary-green" style="padding:.5rem 1rem;background:#059669;color:#fff">
+                                <template x-if="!loading"><span>Generate & Unduh</span></template>
+                                <template x-if="loading"><span>Memproses...</span></template>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/wilayah.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/berita-acara.js"></script>
+<script src="js/surat-keterangan.js"></script>
+<script>initSidebar();</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

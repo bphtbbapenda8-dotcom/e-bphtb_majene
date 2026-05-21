@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Aktivitas | e-BPHTB Majene</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="log-activity" data-submenu="log-sistem">
+
+<div class="app-layout">
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <p class="topbar-title">Log Aktivitas Sistem</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </header>
+
+        <main class="page-content fade-in-up" x-data="logApp()">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem">
+                <div class="page-header" style="margin-bottom:0">
+                    <h2>Log Aktivitas Sistem</h2>
+                    <p>Melihat catatan aktivitas pengguna di dalam sistem.</p>
+                </div>
+                <button @click="fetchLogs()" class="btn-refresh blue">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+            </div>
+
+            <!-- Table Card -->
+            <div class="page-card">
+                <div x-show="loading" class="loading-state">
+                    <svg class="spinner spinner-blue" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+
+                <div x-show="!loading && logs.length === 0" class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p x-text="errorMsg || 'Belum ada log aktivitas yang tercatat.'"></p>
+                </div>
+
+                <div x-show="!loading && logs.length > 0" class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Aksi / Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="item in logs" :key="item.id">
+                                <tr>
+                                    <td style="font-size:0.75rem; color:#64748b" x-text="formatDate(item.created_at)"></td>
+                                    <td class="font-bold text-slate-800" x-text="item.username"></td>
+                                    <td><span class="badge badge-gray" x-text="item.role"></span></td>
+                                    <td>
+                                        <p class="text-sm font-medium text-slate-700" x-text="item.action"></p>
+                                        <p class="text-xs text-slate-500" x-text="item.details"></p>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+    function logApp() {
+        return {
+            logs: [],
+            loading: false,
+            errorMsg: '',
+
+            init() {
+                this.fetchLogs();
+            },
+
+            async fetchLogs() {
+                this.loading = true;
+                this.errorMsg = '';
+                try {
+                    // Cek apakah tabel activity_logs ada
+                    const { data, error } = await db.from('activity_logs')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(100);
+
+                    if (error) {
+                        if (error.code === '42P01') {
+                            this.errorMsg = "Tabel 'activity_logs' belum dibuat di database Supabase.";
+                        } else {
+                            throw error;
+                        }
+                    } else {
+                        this.logs = data || [];
+                    }
+                } catch (err) {
+                    console.error('Fetch Logs error:', err);
+                    this.errorMsg = err.message;
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            formatDate(iso) {
+                if (!iso) return '-';
+                const d = new Date(iso);
+                return d.toLocaleDateString('id-ID', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+        }
+    }
+    initSidebar();
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

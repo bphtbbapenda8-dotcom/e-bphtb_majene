@@ -1,0 +1,192 @@
+/* ===================================================
+   form.css — Form inputs, file upload, map container
+   =================================================== */
+
+/* ── Input Fields ── */
+.input-field {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border-radius: 0.65rem;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  outline: none;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #1e293b;
+  transition: all .2s;
+  display: block;
+}
+.input-field:focus {
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(59,130,246,.1);
+}
+.input-field.green-focus:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22,163,74,.1);
+}
+.input-field::placeholder { color: #cbd5e1; }
+.input-field:disabled, .input-field[readonly] {
+  background: #f1f5f9;
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+textarea.input-field { resize: vertical; min-height: 70px; }
+select.input-field { cursor: pointer; }
+
+/* ── Labels ── */
+.field-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 0.3rem;
+}
+
+/* ── Display box (computed values) ── */
+.computed-field {
+  padding: 0.65rem 0.875rem;
+  border-radius: 0.65rem;
+  border: 1.5px solid #dbeafe;
+  background: #f8faff;
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: #1d4ed8;
+}
+.computed-field.green {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+/* ── File Upload Zone ── */
+.file-zone {
+  position: relative;
+  border: 2px dashed #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1rem;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all .2s;
+  overflow: hidden;
+}
+.file-zone:hover { border-color: #93c5fd; background: #eff6ff; }
+.file-zone.uploaded { border-color: #4ade80; background: #f0fdf4; border-style: solid; }
+.file-zone.green-hover:hover { border-color: #86efac; background: #f0fdf4; }
+
+.file-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.file-zone-icon { margin-bottom: 0.375rem; }
+.file-zone-icon svg { width: 24px; height: 24px; color: #cbd5e1; }
+.file-zone-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+.file-zone-name {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1e293b;
+  word-break: break-all;
+  max-width: 100%;
+  padding: 0 0.25rem;
+}
+.file-zone-size { font-size: 0.65rem; color: #94a3b8; margin-top: 1px; }
+.file-zone-remove {
+  background: none;
+  border: none;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #dc2626;
+  cursor: pointer;
+  margin-top: 0.25rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.file-zone-remove:hover { background: #fee2e2; }
+.file-check-icon { color: #22c55e; margin-bottom: 0.25rem; }
+.file-check-icon svg { width: 24px; height: 24px; }
+
+/* ── Map Container ── */
+#map, #map-mbr {
+  height: 280px;
+  width: 100%;
+  border-radius: 0.875rem;
+  border: 2px solid #e2e8f0;
+  margin-bottom: 0.625rem;
+}
+
+/* ── Grid layouts ── */
+.form-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.form-section { margin-bottom: 1.75rem; }
+.form-section-title { margin-bottom: 1rem; }
+
+@media (min-width: 640px) {
+  .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .form-grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+.col-span-2 { grid-column: span 2; }
+@media (max-width: 639px) { .col-span-2 { grid-column: span 1; } }
+
+/* ── NOP input row ── */
+.nop-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+.nop-row .input-field:first-child { flex: 1; font-family: 'Courier New', monospace; font-size: 1rem; }
+.nop-row select.input-field { width: 140px; flex-shrink: 0; }
+@media (max-width: 639px) {
+  .nop-row { flex-direction: column; }
+  .nop-row select.input-field { width: 100%; }
+}
+
+/* ── Coords row ── */
+.coords-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+.coords-row .coord-note { grid-column: span 2; font-size: 0.65rem; color: #60a5fa; font-style: italic; }
+
+/* ── Form body padding ── */
+.form-body { padding: 1.5rem; }
+@media (min-width: 768px) { .form-body { padding: 2rem; } }
+
+/* ── Calc section background ── */
+.calc-section {
+  background: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+.calc-section.green { background: #f0fdf4; border-color: #bbf7d0; }
+
+/* ── Preview Modal ── */
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+}
+.preview-row:last-child { border-bottom: none; }
+.preview-row-label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+.preview-row-value { font-weight: 700; color: #1e293b; }

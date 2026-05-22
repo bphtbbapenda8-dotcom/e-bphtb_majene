@@ -200,43 +200,136 @@ async function generateBeritaAcaraMBR(d) {
 
     // ── SECTION III: HASIL VERIFIKASI ─────────────────────────────
     setFont('bold', 10);
-    doc.text('III. HASIL VERIFIKASI LAPANGAN', lm, y); y += 5;
+    doc.text('III. HASIL VERIFIKASI', lm, y); y += 5;
     setFont('normal', 10);
-    doc.text('Berdasarkan hasil peninjauan di lokasi, ditemukan fakta-fakta sebagai berikut:', lm + 6, y); y += 6;
+    doc.text('Berdasarkan hasil Verifikasi, ditemukan fakta-fakta sebagai berikut:', lm + 6, y); y += 6;
 
-    const poin = [
-        'Kondisi Fisik Tanah      : (Kosong / Tambak / Perkebunan / SiapBangun)*',
-        'Kondisi Bangunan          : (Permanen / Semi-Permanen / Tua / Rusak)*',
-        'Fasilitas Pendukung      : (Jalan Aspal / Beton / Listrik / Air Bersih)*',
-        'Harga Pasar Terkini di Wilayah Sekitar: Rp ' + (d.nilai_transaksi || 0).toLocaleString('id-ID'),
-        'Kesesuaian Data          : (Sesuai dengan berkas / Terdapat selisih luas)*',
-    ];
-    poin.forEach((p, idx) => {
-        setFont('normal', 9.5);
-        const pLines = doc.splitTextToSize((idx + 1) + '.  ' + p, cw - 8);
-        doc.text(pLines, lm + 6, y);
-        y += pLines.length * 5.5;
-    });
-    y += 4;
+    // Helper drawCheckbox
+    const drawCheckbox = (cx, cy, checked) => {
+        doc.setLineWidth(0.5);
+        doc.rect(cx, cy - 3.5, 4, 4); // Box
+        if (checked) {
+            doc.setLineWidth(0.6);
+            doc.line(cx + 0.8, cy - 1.5, cx + 1.8, cy - 0.5);
+            doc.line(cx + 1.8, cy - 0.5, cx + 3.2, cy - 3.0);
+        }
+    };
 
-    // ── SECTION IV: KESIMPULAN ────────────────────────────────────
+    // Parse data from DB
+    const vfBerkas = typeof d.data_verifikasi_berkas === 'string' ? JSON.parse(d.data_verifikasi_berkas || '{}') : (d.data_verifikasi_berkas || {});
+    const vfLap = typeof d.data_verifikasi_lapangan === 'string' ? JSON.parse(d.data_verifikasi_lapangan || '{}') : (d.data_verifikasi_lapangan || {});
+    const keleng = vfBerkas.kelengkapan || {};
+
+    // A. Berkas
+    setFont('bold', 9.5);
+    doc.text('A.  Berkas', lm + 6, y); y += 6;
+    setFont('normal', 9);
+    
+    // 1. Status Perkawinan
+    doc.text('1.  Status Perkawinan', lm + 10, y);
+    doc.text(':', lm + 45, y);
+    drawCheckbox(lm + 48, y, vfBerkas.status_perkawinan === 'menikah'); doc.text('Menikah', lm + 54, y);
+    drawCheckbox(lm + 100, y, vfBerkas.status_perkawinan === 'belum_menikah'); doc.text('Belum Menikah', lm + 106, y);
+    y += 6;
+
+    // 2. Penghasilan
+    doc.text('2.  penghasilan', lm + 10, y);
+    doc.text(':', lm + 45, y);
+    drawCheckbox(lm + 48, y, vfBerkas.penghasilan === 'dibawah_8juta'); doc.text('dibawah Rp.8.000.000,-', lm + 54, y);
+    drawCheckbox(lm + 100, y, vfBerkas.penghasilan === 'dibawah_7juta'); doc.text('dibawah Rp.7.000.000', lm + 106, y);
+    y += 6;
+
+    // 3. Kelengkapan Berkas
+    doc.text('3.  Kelengkapan Berkas', lm + 10, y);
+    doc.text(':', lm + 45, y);
+    drawCheckbox(lm + 48, y, keleng.ktp); doc.text('KTP', lm + 54, y);
+    drawCheckbox(lm + 65, y, keleng.kk); doc.text('Kartu Keluarga', lm + 71, y);
+    drawCheckbox(lm + 100, y, keleng.sertifikat); doc.text('Sertifikat (SHGB)', lm + 106, y);
+    y += 6;
+    drawCheckbox(lm + 48, y, keleng.ajb); doc.text('AJB/Ket. Jual Beli', lm + 54, y);
+    drawCheckbox(lm + 85, y, keleng.spk); doc.text('Surat Perjanjian Kredit', lm + 91, y);
+    drawCheckbox(lm + 130, y, keleng.sppt); doc.text('SPPT PBB', lm + 136, y);
+    y += 6;
+    drawCheckbox(lm + 48, y, keleng.ket_rumah); doc.text('Surat Ket. Tidak Memiliki Rumah', lm + 54, y);
+    y += 6;
+
+    // 4. Harga
+    doc.text('4.  Harga', lm + 10, y);
+    doc.text(':', lm + 45, y);
+    doc.text('Rp ' + (vfBerkas.harga ? parseInt(vfBerkas.harga).toLocaleString('id-ID') : (d.nilai_transaksi || 0).toLocaleString('id-ID')), lm + 48, y);
+    y += 6;
+
+    // B. Kesesuaian Data dilapangan
+    setFont('bold', 9.5);
+    doc.text('B.  Kesesuaian Data dengan realitas dilapangan', lm + 6, y); y += 6;
+    setFont('normal', 9);
+
+    // 1. Kondisi Fisik Tanah
+    doc.text('1.  Kondisi Fisik Tanah', lm + 10, y);
+    doc.text(':', lm + 60, y);
+    drawCheckbox(lm + 63, y, vfLap.kondisi_tanah === 'tanah_kosong'); doc.text('Tanah Kosong', lm + 69, y);
+    drawCheckbox(lm + 100, y, vfLap.kondisi_tanah === 'tanah_bangunan'); doc.text('Tanah & Bangunan', lm + 106, y);
+    y += 6;
+
+    // 2. Jenis Bangunan
+    doc.text('2.  Jenis Bangunan', lm + 10, y);
+    doc.text(':', lm + 60, y);
+    drawCheckbox(lm + 63, y, vfLap.jenis_bangunan === 'permanen'); doc.text('Permanen', lm + 69, y);
+    drawCheckbox(lm + 100, y, vfLap.jenis_bangunan === 'semi_permanen'); doc.text('Semi Permanen', lm + 106, y);
+    y += 6;
+
+    // 3. Luas Bangunan
+    doc.text('3.  Luas Bangunan 36 M\u00B2', lm + 10, y);
+    doc.text(':', lm + 60, y);
+    drawCheckbox(lm + 63, y, vfLap.luas_bangunan === 'sesuai'); doc.text('Sesuai', lm + 69, y);
+    drawCheckbox(lm + 85, y, vfLap.luas_bangunan === 'tidak_sesuai'); doc.text('Tidak Sesuai', lm + 91, y);
+    y += 6;
+
+    // 4. Luas Tanah Sesuai Dengan Sertifikat
+    doc.text('4.  Luas Tanah Sesuai Dengan Sertifikat', lm + 10, y);
+    doc.text(':', lm + 85, y);
+    drawCheckbox(lm + 88, y, vfLap.luas_tanah === 'sesuai'); doc.text('Sesuai', lm + 94, y);
+    drawCheckbox(lm + 110, y, vfLap.luas_tanah === 'tidak_sesuai'); doc.text('Tidak Sesuai', lm + 116, y);
+    y += 8;
+
+    // C. KESIMPULAN / CATATAN TIM VERIFIKASI
     setFont('bold', 10);
-    doc.text('IV. KESIMPULAN / CATATAN TIM VERIFIKASI', lm, y); y += 7;
-    setFont('italic', 10);
-    const catatan = d.catatan_verifikasi || '';
-    if (catatan) {
-        const catLines = doc.splitTextToSize(catatan, cw - 10);
-        doc.text(catLines, lm + 5, y);
-        y += catLines.length * 5;
-    }
+    doc.text('C. KESIMPULAN / CATATAN TIM VERIFIKASI', lm, y); y += 6;
     doc.setLineDash([1.5, 1.5]);
-    doc.line(lm + 5, y, rm - 5, y); y += 5;
     doc.line(lm + 5, y, rm - 5, y);
     doc.setLineDash([]);
-    y += 10;
+    y += 7;
+
+    const isLayak = d.verifikasi_berkas_status === 'disetujui' && d.verifikasi_lapangan_status === 'disetujui';
+    const isTidakLayak = d.verifikasi_berkas_status === 'ditolak' || d.verifikasi_lapangan_status === 'ditolak';
+
+    // Rekomendasi Akhir
+    doc.text('Rekomendasi Akhir:', lm, y);
+    
+    doc.setLineWidth(0.6);
+    // Box 1: Hak Pertama
+    doc.rect(lm + 35, y - 4, 5, 5);
+    if (vfBerkas.hak_pertama) {
+        doc.line(lm + 36, y - 1.5, lm + 37.5, y - 0.5); doc.line(lm + 37.5, y - 0.5, lm + 39.5, y - 3.5);
+    }
+    doc.text('PEROLEHAN HAK PERTAMA', lm + 45, y); y += 7;
+
+    // Box 2: Layak
+    doc.rect(lm + 35, y - 4, 5, 5);
+    if (isLayak) {
+        doc.line(lm + 36, y - 1.5, lm + 37.5, y - 0.5); doc.line(lm + 37.5, y - 0.5, lm + 39.5, y - 3.5);
+    }
+    doc.text('LAYAK DIBEBASKAN BPHTB', lm + 45, y); y += 7;
+
+    // Box 3: Tidak Layak
+    doc.rect(lm + 35, y - 4, 5, 5);
+    if (isTidakLayak) {
+        doc.line(lm + 36, y - 1.5, lm + 37.5, y - 0.5); doc.line(lm + 37.5, y - 0.5, lm + 39.5, y - 3.5);
+    }
+    doc.text('TIDAK LAYAK (Ditolak/Pajak Normal)', lm + 45, y); y += 10;
 
     // ── PENUTUP ───────────────────────────────────────────────────
-    setFont('normal', 10);
+    setFont('normal', 9);
     const penutup = 'Demikian Berita Acara ini dibuat dengan sebenarnya untuk digunakan sebagai dasar penetapan bebas BPHTB untuk Masyarakat Berpenghasilan Rendah (MBR).';
     const pLines  = doc.splitTextToSize(penutup, cw);
     doc.text(pLines, lm, y);

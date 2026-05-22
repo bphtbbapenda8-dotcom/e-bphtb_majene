@@ -15,6 +15,24 @@ function verifikasiApp(mode) {
         showModal: false,
         selectedBerkas: null,
 
+        berkasForm: {
+            status_perkawinan: '',
+            penghasilan: '',
+            kelengkapan: {
+                ktp: false, kk: false, sertifikat: false,
+                ajb: false, spk: false, sppt: false, ket_rumah: false
+            },
+            harga: 0,
+            hak_pertama: false
+        },
+
+        lapanganForm: {
+            kondisi_tanah: '',
+            jenis_bangunan: '',
+            luas_bangunan: '',
+            luas_tanah: ''
+        },
+
         init() {
             // Auth Enforcement handled by sidebar.js `initSidebar()`
             this.fetchData();
@@ -85,7 +103,75 @@ function verifikasiApp(mode) {
 
         openModal(item) {
             this.selectedBerkas = item;
+            
+            // Reset forms
+            if (this.mode === 'berkas') {
+                this.berkasForm = {
+                    status_perkawinan: '',
+                    penghasilan: '',
+                    kelengkapan: { ktp: false, kk: false, sertifikat: false, ajb: false, spk: false, sppt: false, ket_rumah: false },
+                    harga: item.nilai_transaksi || 0,
+                    hak_pertama: false
+                };
+            } else {
+                this.lapanganForm = {
+                    kondisi_tanah: '',
+                    jenis_bangunan: '',
+                    luas_bangunan: '',
+                    luas_tanah: ''
+                };
+            }
+
             this.showModal = true;
+        },
+
+        async submitVerifikasi() {
+            // Check if MBR, only MBR gets the new checklist according to user
+            if (!this.selectedBerkas.isMbr) {
+                // For Reguler, fallback to original logic
+                return this.setujuiBerkas();
+            }
+
+            let statusValue = 'disetujui';
+            let catatan = null;
+            let payloadTambahan = {};
+
+            if (this.mode === 'berkas') {
+                const bf = this.berkasForm;
+                // Validation: if any field is missing or not checked
+                if (!bf.status_perkawinan || !bf.penghasilan || !bf.hak_pertama || 
+                    !bf.kelengkapan.ktp || !bf.kelengkapan.kk || !bf.kelengkapan.sertifikat || 
+                    !bf.kelengkapan.ajb || !bf.kelengkapan.spk || !bf.kelengkapan.sppt || 
+                    !bf.kelengkapan.ket_rumah) {
+                    
+                    statusValue = 'ditolak';
+                    catatan = 'Ditolak karena berkas tidak lengkap atau tidak memenuhi syarat (Otomatis).';
+                }
+                payloadTambahan.data_verifikasi_berkas = bf;
+            } else {
+                const lf = this.lapanganForm;
+                if (!lf.kondisi_tanah || !lf.jenis_bangunan || lf.luas_bangunan !== 'sesuai' || lf.luas_tanah !== 'sesuai') {
+                    statusValue = 'ditolak';
+                    catatan = 'Ditolak karena data lapangan tidak sesuai (Otomatis).';
+                }
+                payloadTambahan.data_verifikasi_lapangan = lf;
+            }
+
+            const actionText = statusValue === 'disetujui' ? 'Setujui Pengajuan?' : 'Tolak Pengajuan (Tidak Layak)?';
+            const iconType = statusValue === 'disetujui' ? 'question' : 'warning';
+            const confirmColor = statusValue === 'disetujui' ? '#16a34a' : '#dc2626';
+
+            const confirm = await Swal.fire({
+                title: actionText,
+                text: 'Status akhir: ' + (statusValue === 'disetujui' ? 'LAYAK DIBEBASKAN BPHTB' : 'TIDAK LAYAK (Ditolak)'),
+                icon: iconType,
+                showCancelButton: true,
+                confirmButtonColor: confirmColor,
+                confirmButtonText: 'Ya, Proses'
+            });
+
+            if (!confirm.isConfirmed) return;
+            this.updateStatus(statusValue, catatan, payloadTambahan);
         },
 
         async tolakBerkas() {
@@ -123,14 +209,14 @@ function verifikasiApp(mode) {
             this.updateStatus('disetujui');
         },
 
-        async updateStatus(statusValue, catatan = null) {
+        async updateStatus(statusValue, catatan = null, payloadTambahan = {}) {
             this.loading = true;
             try {
                 const table = this.selectedBerkas.isMbr ? 'pengajuan_mbr' : 'pengajuan_bphtb';
                 const no_pengajuan = this.selectedBerkas.no_pengajuan;
 
                 // Build core payload (always safe columns)
-                let payload = {};
+                let payload = { ...payloadTambahan };
                 if (this.mode === 'berkas') {
                     payload.verifikasi_berkas_status = statusValue;
                 } else {
@@ -140,7 +226,7 @@ function verifikasiApp(mode) {
                 // If rejected, update alur_berkas and catatan
                 if (statusValue === 'ditolak') {
                     payload.alur_berkas = 'Ditolak oleh verifikator ' + this.mode;
-                    payload.catatan_penolakan = catatan;
+                    payload.catatan_penolakan = catatan || 'Ditolak oleh verifikator ' + this.mode;
                 } else if (statusValue === 'disetujui') {
                     // Check if both are now disetujui
                     const otherStatus = this.mode === 'berkas' 

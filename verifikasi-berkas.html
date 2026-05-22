@@ -88,6 +88,7 @@
                                 <th>Jenis</th>
                                 <th>No Pengajuan</th>
                                 <th>Nama WP</th>
+                                <th>Nama Notaris</th>
                                 <th>Status Verifikasi Berkas</th>
                                 <th>Aksi</th>
                             </tr>
@@ -103,6 +104,9 @@
                                     <td>
                                         <p class="td-name-main" x-text="item.nama"></p>
                                         <p class="td-name-sub" x-text="item.nik"></p>
+                                    </td>
+                                    <td>
+                                        <p style="font-size:0.75rem; color:#475569; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" x-text="item.notaris || '-'"></p>
                                     </td>
                                     <td>
                                         <span class="badge badge-yellow" x-show="!item.verifikasi_berkas_status || item.verifikasi_berkas_status === 'menunggu'">Menunggu</span>

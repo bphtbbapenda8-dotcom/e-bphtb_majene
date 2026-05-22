@@ -145,7 +145,7 @@ async function generateSuratKeteranganMBR(d) {
     doc.text(`Majene, ${hari} ${bulanNama} ${tahun}`, signatureX, y); y += 5.5;
     doc.text('Kepala Badan', signatureX, y); y += 14;
 
-    doc.text('${ttd_pengirim}', signatureX + 10, y); y += 14;
+    doc.text('${ttd_pengirim}', signatureX + 10, y); y += 20; // Ditambah jarak enter satu kali
 
     setFont('bold', 11);
     doc.text('Drs. H. ABDUL RAHIM,MM., CGCAE', signatureX, y); 

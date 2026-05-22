@@ -62,8 +62,24 @@ function verifikasiApp(mode) {
                 // Assuming any new request is implicitly "Menunggu Verifikasi"
                 // Usually indicated by alur_berkas = 'Berkas sedang diverifikasi'
                 // Here we just fetch all to be safe, but sort by date. 
-                // Or we can filter out 'Dibatalkan'
+                // Filter out 'Dibatalkan'
                 combined = combined.filter(item => item.alur_berkas !== 'Dibatalkan oleh sistem');
+
+                // Sort: Prioritize 'menunggu' status to appear on top
+                combined.sort((a, b) => {
+                    const statusA = (this.mode === 'berkas' ? a.verifikasi_berkas_status : a.verifikasi_lapangan_status) || 'menunggu';
+                    const statusB = (this.mode === 'berkas' ? b.verifikasi_berkas_status : b.verifikasi_lapangan_status) || 'menunggu';
+                    
+                    const isMenungguA = statusA.toLowerCase() === 'menunggu' ? 1 : 0;
+                    const isMenungguB = statusB.toLowerCase() === 'menunggu' ? 1 : 0;
+
+                    if (isMenungguA > isMenungguB) return -1;
+                    if (isMenungguA < isMenungguB) return 1;
+
+                    const dateA = new Date(a.created_at || 0).getTime();
+                    const dateB = new Date(b.created_at || 0).getTime();
+                    return dateB - dateA;
+                });
 
                 this.data = combined;
 

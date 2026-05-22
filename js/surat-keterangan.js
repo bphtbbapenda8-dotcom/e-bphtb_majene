@@ -143,7 +143,7 @@ async function generateSuratKeteranganMBR(d) {
     setFont('normal', 11);
     const signatureX = pw - lm - 65;
     doc.text(`Majene, ${hari} ${bulanNama} ${tahun}`, signatureX, y); y += 5.5;
-    doc.text('Kepala Badan', signatureX, y); y += 14;
+    doc.text('Kepala Badan', signatureX, y); y += 20;
 
     doc.text('${ttd_pengirim}', signatureX + 10, y); y += 20; // Ditambah jarak enter satu kali
 

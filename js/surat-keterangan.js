@@ -27,11 +27,7 @@ async function generateSuratKeteranganMBR(d) {
         const resp = await fetch('logo.png');
         if (resp.ok) {
             const blob = await resp.blob();
-            logoDataUrl = await new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.readAsDataURL(blob);
-            });
+            logoDataUrl = await compressImageToDataURL(blob, 300, 'image/png');
         }
     } catch(e) {
         try {
@@ -47,7 +43,7 @@ async function generateSuratKeteranganMBR(d) {
     }
 
     const { jsPDF } = window.jspdf || { jsPDF: window.jsPDF };
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
     const pw = 210, lm = 20, rm = pw - 20, cw = rm - lm;
 

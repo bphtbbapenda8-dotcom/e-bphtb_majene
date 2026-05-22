@@ -68,51 +68,31 @@ async function generateBeritaAcaraMBR(d) {
         const resp = await fetch('logo.png');
         if (resp.ok) {
             const blob = await resp.blob();
-            logoDataUrl = await new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.readAsDataURL(blob);
-            });
+            logoDataUrl = await compressImageToDataURL(blob, 300, 'image/png');
         }
         
         const respTtd = await fetch('ttd_admin.png');
         if (respTtd.ok) {
             const blobTtd = await respTtd.blob();
-            ttdAdminDataUrl = await new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.readAsDataURL(blobTtd);
-            });
+            ttdAdminDataUrl = await compressImageToDataURL(blobTtd, 300, 'image/png');
         }
         
         const respTtdWawan = await fetch('ttd_wawan.png');
         if (respTtdWawan.ok) {
             const blobTtdWawan = await respTtdWawan.blob();
-            ttdWawanDataUrl = await new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.readAsDataURL(blobTtdWawan);
-            });
+            ttdWawanDataUrl = await compressImageToDataURL(blobTtdWawan, 300, 'image/png');
         }
 
         const respTtdThomas = await fetch('ttd_thomas.png');
         if (respTtdThomas.ok) {
             const blobTtdThomas = await respTtdThomas.blob();
-            ttdThomasDataUrl = await new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.readAsDataURL(blobTtdThomas);
-            });
+            ttdThomasDataUrl = await compressImageToDataURL(blobTtdThomas, 300, 'image/png');
         }
 
         const respTtdWahyu = await fetch('ttd_wahyu.png');
         if (respTtdWahyu.ok) {
             const blobTtdWahyu = await respTtdWahyu.blob();
-            ttdWahyuDataUrl = await new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result);
-                reader.readAsDataURL(blobTtdWahyu);
-            });
+            ttdWahyuDataUrl = await compressImageToDataURL(blobTtdWahyu, 300, 'image/png');
         }
     } catch(e) {
         // Fallback: try to read from img tag already on page
@@ -130,7 +110,7 @@ async function generateBeritaAcaraMBR(d) {
 
     // ── Init jsPDF ────────────────────────────────────────────────
     const { jsPDF } = window.jspdf || { jsPDF: window.jsPDF };
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
     const pw = 210;
     const lm = 20;

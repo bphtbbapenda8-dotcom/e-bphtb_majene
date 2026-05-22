@@ -63,6 +63,7 @@ async function generateBeritaAcaraMBR(d) {
     let ttdAdminDataUrl = null;
     let ttdWawanDataUrl = null;
     let ttdThomasDataUrl = null;
+    let ttdWahyuDataUrl = null;
     try {
         const resp = await fetch('logo.png');
         if (resp.ok) {
@@ -101,6 +102,16 @@ async function generateBeritaAcaraMBR(d) {
                 const reader = new FileReader();
                 reader.onload = () => res(reader.result);
                 reader.readAsDataURL(blobTtdThomas);
+            });
+        }
+
+        const respTtdWahyu = await fetch('ttd_wahyu.png');
+        if (respTtdWahyu.ok) {
+            const blobTtdWahyu = await respTtdWahyu.blob();
+            ttdWahyuDataUrl = await new Promise(res => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result);
+                reader.readAsDataURL(blobTtdWahyu);
             });
         }
     } catch(e) {
@@ -267,6 +278,8 @@ async function generateBeritaAcaraMBR(d) {
         doc.addImage(ttdWawanDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
     } else if (ttdThomasDataUrl && v1.includes('THOMAS HASANUDDIN')) {
         doc.addImage(ttdThomasDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
+    } else if (ttdWahyuDataUrl && (v1.includes('MUHAMMAD WAHYU') || v1 === 'WAHYU')) {
+        doc.addImage(ttdWahyuDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
     }
     
     doc.text('(Tanda Tangan:', lm + 100, y);
@@ -282,6 +295,8 @@ async function generateBeritaAcaraMBR(d) {
         doc.addImage(ttdWawanDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
     } else if (ttdThomasDataUrl && v2.includes('THOMAS HASANUDDIN')) {
         doc.addImage(ttdThomasDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
+    } else if (ttdWahyuDataUrl && (v2.includes('MUHAMMAD WAHYU') || v2 === 'WAHYU')) {
+        doc.addImage(ttdWahyuDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
     }
 
     doc.text('(Tanda Tangan:', lm + 100, y);

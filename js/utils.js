@@ -86,3 +86,32 @@ async function logActivity(action, details) {
         console.error("Gagal mencatat log aktivitas:", e);
     }
 }
+
+/** Compress image blob and return Base64 Data URL */
+function compressImageToDataURL(blob, maxWidth = 400, format = 'image/png', quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (format === 'image/jpeg') {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+            }
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL(format, quality));
+        };
+        img.onerror = reject;
+        img.src = url;
+    });
+}

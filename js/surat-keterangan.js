@@ -162,5 +162,6 @@ async function generateSuratKeteranganMBR(d) {
     setFont('normal', 11);
     doc.text('NIP. 19670827 199002 1 002', signatureX, y);
 
-    doc.save('Surat_Keterangan_BPHTB_' + (d.no_pengajuan || 'MBR') + '.pdf');
+    const safeName = d.nama ? d.nama.replace(/[^a-zA-Z0-9]/g, '_') : 'MBR';
+    doc.save('Surat_Keterangan_BPHTB_' + safeName + '.pdf');
 }

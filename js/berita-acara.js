@@ -303,6 +303,6 @@ async function generateBeritaAcaraMBR(d) {
     doc.line(lm + 131, y, rm, y);
     doc.text(')', rm + 1, y);
 
-    // ── SAVE ─────────────────────────────────────────────────────
-    doc.save('Berita_Acara_' + (d.no_pengajuan || 'MBR') + '.pdf');
+    const safeName = d.nama ? d.nama.replace(/[^a-zA-Z0-9]/g, '_') : 'MBR';
+    doc.save('Berita_Acara_' + safeName + '.pdf');
 }

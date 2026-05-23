@@ -168,10 +168,27 @@
                                 </div>
                                 <div>
                                     <label class="field-label">Jenis Perolehan Hak</label>
-                                    <select x-model="form.jenisPerolehan" class="input-field mt-1">
-                                        <option value="jualbeli">JUAL BELI</option>
-                                        <option value="hibah">HIBAH / PEMBERIAN</option>
-                                        <option value="waris">WARIS / HIBAH WASIAT</option>
+                                    <select x-model="form.jenisPerolehan" class="input-field mt-1" required>
+                                        <option value="">-- Pilih Jenis Perolehan --</option>
+                                        <optgroup label="Pemindahan hak karena:">
+                                            <option value="Jual beli">Jual beli</option>
+                                            <option value="Tukar-menukar">Tukar-menukar</option>
+                                            <option value="Hibah">Hibah</option>
+                                            <option value="Hibah wasiat">Hibah wasiat</option>
+                                            <option value="Waris">Waris</option>
+                                            <option value="Pemasukan dalam perseroan atau badan hukum lain">Pemasukan dalam perseroan atau badan hukum lain</option>
+                                            <option value="Pemisahan hak yang mengakibatkan peralihan">Pemisahan hak yang mengakibatkan peralihan</option>
+                                            <option value="Penunjukan pembeli dalam lelang">Penunjukan pembeli dalam lelang</option>
+                                            <option value="Pelaksanaan putusan hakim yang mempunyai kekuatan hukum tetap">Pelaksanaan putusan hakim yang mempunyai kekuatan hukum tetap</option>
+                                            <option value="Penggabungan usaha">Penggabungan usaha</option>
+                                            <option value="Peleburan usaha">Peleburan usaha</option>
+                                            <option value="Pemekaran usaha">Pemekaran usaha</option>
+                                            <option value="Hadiah">Hadiah</option>
+                                        </optgroup>
+                                        <optgroup label="Pemberian hak baru karena:">
+                                            <option value="Kelanjutan pelepasan hak">Kelanjutan pelepasan hak</option>
+                                            <option value="Di luar pelepasan hak">Di luar pelepasan hak</option>
+                                        </optgroup>
                                     </select>
                                 </div>
                                 <div>

@@ -32,6 +32,88 @@ function logout() {
     window.location.href = 'index.html';
 }
 
+async function hashSHA256Local(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function changePassword() {
+    const userData = checkAuth();
+    if (!userData) return;
+
+    const { value: formValues } = await Swal.fire({
+        title: 'Ganti Password',
+        html: `
+            <input id="swal-old-pwd" type="password" class="swal2-input" placeholder="Password Lama" style="font-size:0.875rem">
+            <input id="swal-new-pwd" type="password" class="swal2-input" placeholder="Password Baru" style="font-size:0.875rem">
+            <input id="swal-confirm-pwd" type="password" class="swal2-input" placeholder="Konfirmasi Password Baru" style="font-size:0.875rem">
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Simpan',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#1d4ed8',
+        preConfirm: () => {
+            const oldP = document.getElementById('swal-old-pwd').value;
+            const newP = document.getElementById('swal-new-pwd').value;
+            const conf = document.getElementById('swal-confirm-pwd').value;
+            
+            if (!oldP || !newP || !conf) {
+                Swal.showValidationMessage('Semua kolom harus diisi');
+                return false;
+            }
+            if (newP !== conf) {
+                Swal.showValidationMessage('Password baru dan konfirmasi tidak cocok');
+                return false;
+            }
+            return { oldP, newP };
+        }
+    });
+
+    if (formValues) {
+        try {
+            Swal.fire({
+                title: 'Menyimpan...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const oldHash = await hashSHA256Local(formValues.oldP);
+            const { data: userDb, error: errCheck } = await db.from('users')
+                .select('id')
+                .eq('id', userData.id)
+                .eq('password', oldHash)
+                .maybeSingle();
+
+            if (errCheck) throw errCheck;
+            if (!userDb) throw new Error('Password lama salah!');
+
+            const newHash = await hashSHA256Local(formValues.newP);
+            const { error: errUpdate } = await db.from('users')
+                .update({ password: newHash })
+                .eq('id', userData.id);
+
+            if (errUpdate) throw errUpdate;
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Password berhasil diubah!',
+                confirmButtonColor: '#1d4ed8'
+            });
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: err.message,
+                confirmButtonColor: '#dc2626'
+            });
+        }
+    }
+}
+
 // ── Role-based Menu ───────────────────────────────────────────────
 
 function getMenuForRole(role) {
@@ -181,12 +263,19 @@ function buildSidebarHTML(activeMenu, activeSubMenu, userData) {
           <p class="sidebar-user-name">${userName}</p>
           <p class="sidebar-user-role">${displayRole}</p>
         </div>
-        <button class="sidebar-logout-btn" onclick="logout()" title="Keluar">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-        </button>
+        <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <button class="sidebar-logout-btn" onclick="changePassword()" title="Ganti Password" style="color:#2563eb;background:#eff6ff">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4v-3.286l5.964-5.964A6 6 0 1121 9z"/>
+              </svg>
+            </button>
+            <button class="sidebar-logout-btn" onclick="logout()" title="Keluar">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+              </svg>
+            </button>
+        </div>
       </div>`;
 
     return html;
@@ -202,7 +291,9 @@ function initSidebar() {
     const activeSubMenu = document.body.dataset.submenu || '';
 
     // Auth Enforcement: If user doesn't have access to this page, boot them to their default
-    enforcePageAccess(userData.role, activeMenu);
+    if (!enforcePageAccess(userData.role, activeMenu)) {
+        return; // Stop rendering if redirecting
+    }
 
     const sidebarHTML = buildSidebarHTML(activeMenu, activeSubMenu, userData);
 
@@ -239,7 +330,7 @@ function initSidebar() {
 // ── Access Enforcement ────────────────────────────────────────────
 
 function enforcePageAccess(role, activeMenu) {
-    if (!activeMenu) return;
+    if (!activeMenu) return true;
 
     const allowed = {
         'admin': ['pengajuan', 'riwayat', 'verifikasi', 'admin', 'manajemen-data', 'manajemen-user', 'log-activity'],
@@ -253,11 +344,13 @@ function enforcePageAccess(role, activeMenu) {
     const roleAllowed = allowed[role] || allowed['mandiri'];
     
     if (!roleAllowed.includes(activeMenu)) {
-        if (role === 'admin') window.location.href = 'manajemen-user.html';
-        else if (role === 'verifikator_berkas') window.location.href = 'pengajuan-bphtb.html';
-        else if (role === 'verifikator_lapangan') window.location.href = 'pengajuan-bphtb.html';
-        else window.location.href = 'pengajuan-bphtb.html';
+        if (role === 'admin') window.location.replace('manajemen-user.html');
+        else if (role === 'verifikator_berkas') window.location.replace('pengajuan-bphtb.html');
+        else if (role === 'verifikator_lapangan') window.location.replace('pengajuan-bphtb.html');
+        else window.location.replace('pengajuan-bphtb.html');
+        return false;
     }
+    return true;
 }
 
 // ── Toggle Menu (onclick) ─────────────────────────────────────────

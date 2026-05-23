@@ -167,6 +167,36 @@
                                 <span style="font-size:.7rem;color:#94a3b8" x-text="fmtDate(selectedBerkas?.created_at)"></span>
                             </div>
 
+                            <!-- Persetujuan WP Non-Jual Beli -->
+                            <template x-if="selectedBerkas?.status_persetujuan_wp === 'menunggu_wp'">
+                                <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:.75rem;padding:1rem;margin-bottom:1.25rem">
+                                    <h4 style="color:#b45309;font-weight:900;font-size:.8rem;text-transform:uppercase">Verifikasi Lapangan Selesai</h4>
+                                    <p style="font-size:.75rem;color:#d97706;margin-top:.25rem;font-weight:700">
+                                        Petugas telah menetapkan nilai pajak BPHTB Anda sebesar:
+                                        <span style="font-size:1.1rem;color:#b45309;display:block;margin-top:.25rem;font-family:monospace" x-text="fmtCurr(selectedBerkas.pajak_ditetapkan)"></span>
+                                    </p>
+                                    
+                                    <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
+                                        <button @click="showKomentarPanel = true" class="btn-filter" style="padding:.4rem .85rem;font-size:.75rem;background:#fff;border-color:#fde68a;color:#d97706">
+                                            Berikan Pendapat Lain
+                                        </button>
+                                        <button @click="terimaPajak()" :disabled="loading" class="btn-filter" style="padding:.4rem 1rem;font-size:.75rem;background:#d97706;color:#fff;border-color:#d97706">
+                                            Terima & Lanjutkan
+                                        </button>
+                                    </div>
+
+                                    <!-- Panel Komentar -->
+                                    <div x-show="showKomentarPanel" style="margin-top:1rem;border-top:1px dashed #fde68a;padding-top:1rem">
+                                        <label class="field-label" style="color:#b45309">Masukkan Pendapat / Sanggahan Anda</label>
+                                        <textarea x-model="komentarWp" class="input-field mt-1" rows="3" placeholder="Tulis komentar..."></textarea>
+                                        <div style="display:flex;gap:.5rem;margin-top:.5rem;justify-content:flex-end">
+                                            <button @click="showKomentarPanel = false" class="btn-filter" style="padding:.3rem .75rem;font-size:.7rem;background:#f3f4f6;color:#4b5563;border:none">Batal</button>
+                                            <button @click="kirimKomentar()" :disabled="loading || !komentarWp" class="btn-filter" style="padding:.3rem .75rem;font-size:.7rem;background:#b45309;color:#fff;border:none">Kirim Komentar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
                             <!-- Panel Berkas Ditolak (Alasan & Aksi Edit/Hapus) -->
                             <template x-if="selectedBerkas?.alur_berkas === 'Berkas ditolak'">
                                 <div style="background:#fff1f2;border:1.5px solid #fecdd3;border-radius:.75rem;padding:1rem;margin-bottom:1.25rem">

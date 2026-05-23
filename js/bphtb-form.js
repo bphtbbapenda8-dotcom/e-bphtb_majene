@@ -219,12 +219,12 @@ function bphtbFormApp() {
             }
             // In Edit Mode, we can reuse existing files, so files are not strictly required if they exist on the server
             if (!this.isEditMode) {
-                if (!this.files.ktp || !this.files.sertifikat) {
+                if (!this.files?.ktp || !this.files?.sertifikat) {
                     Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap unggah minimal KTP/KK dan Sertifikat Tanah.', confirmButtonColor: '#1d4ed8' });
                     return;
                 }
             } else {
-                if ((!this.files.ktp && !this.existingFiles.url_ktp) || (!this.files.sertifikat && !this.existingFiles.url_sertifikat)) {
+                if ((!this.files?.ktp && !this.existingFiles?.url_ktp) || (!this.files?.sertifikat && !this.existingFiles?.url_sertifikat)) {
                     Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap pastikan KTP/KK dan Sertifikat Tanah tersedia.', confirmButtonColor: '#1d4ed8' });
                     return;
                 }
@@ -237,12 +237,12 @@ function bphtbFormApp() {
         async submitData() {
             this.loading = true;
             try {
-                let ktpUrl = this.existingFiles.url_ktp;
-                let sertifikatUrl = this.existingFiles.url_sertifikat;
-                let pendukungUrl = this.existingFiles.url_pendukung;
+                let ktpUrl = this.existingFiles?.url_ktp || '';
+                let sertifikatUrl = this.existingFiles?.url_sertifikat || '';
+                let pendukungUrl = this.existingFiles?.url_pendukung || '';
 
                 // Check if any new files are being uploaded
-                if (this.fileObjects.ktp || this.fileObjects.sertifikat || this.fileObjects.pendukung) {
+                if (this.fileObjects?.ktp || this.fileObjects?.sertifikat || this.fileObjects?.pendukung) {
                     Swal.fire({
                         title: 'Mengunggah Berkas...',
                         text: 'Menyimpan file ke Google Drive (1/2)',
@@ -253,9 +253,9 @@ function bphtbFormApp() {
                     const formData = new FormData();
                     formData.append('aksi', 'upload_file_saja');
                     formData.append('nik', this.form.nik);
-                    if (this.fileObjects.ktp)        formData.append('ktp_file',        await toBase64(this.fileObjects.ktp));
-                    if (this.fileObjects.sertifikat) formData.append('sertifikat_file', await toBase64(this.fileObjects.sertifikat));
-                    if (this.fileObjects.pendukung)  formData.append('pendukung_file',  await toBase64(this.fileObjects.pendukung));
+                    if (this.fileObjects?.ktp)        formData.append('ktp_file',        await toBase64(this.fileObjects.ktp));
+                    if (this.fileObjects?.sertifikat) formData.append('sertifikat_file', await toBase64(this.fileObjects.sertifikat));
+                    if (this.fileObjects?.pendukung)  formData.append('pendukung_file',  await toBase64(this.fileObjects.pendukung));
 
                     const scriptRes = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                     const scriptResult = await scriptRes.json();

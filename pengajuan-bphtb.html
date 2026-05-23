@@ -268,26 +268,59 @@
                             </div>
                             <h3 style="font-size:1.125rem;font-weight:900;color:#1e293b;margin-top:.5rem">Konfirmasi Pengajuan BPHTB</h3>
                             <p style="font-size:.75rem;color:#64748b">Periksa kembali data sebelum mengirim</p>
-                        </div>
-                        <div class="confirm-summary">
-                            <div class="preview-row">
-                                <span class="preview-row-label">Nama WP</span>
-                                <span class="preview-row-value" x-text="form.nama"></span>
-                            </div>
-                            <div class="preview-row">
-                                <span class="preview-row-label">Kecamatan</span>
-                                <span class="preview-row-value" x-text="form.kecamatan"></span>
-                            </div>
-                            <div class="preview-row">
-                                <span class="preview-row-label">Jenis Perolehan</span>
-                                <span class="preview-row-value" style="color:#1d4ed8;text-transform:uppercase" x-text="form.jenisPerolehan"></span>
-                            </div>
-                            <div class="preview-row" style="margin-top:.5rem;border-bottom:none">
-                                <span class="confirm-total-label">Estimasi BPHTB</span>
-                                <span class="confirm-total-value" x-text="fmtCurr(estimasiBphtb)"></span>
-                            </div>
-                        </div>
-                        <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
+                                         <div class="confirm-summary" style="max-height: 55vh; overflow-y: auto; padding-right: 0.5rem;">
+                              <!-- Data Subjek Pajak -->
+                              <div style="margin-bottom:1rem">
+                                  <h4 style="font-size:0.75rem; font-weight:bold; color:#1d4ed8; border-bottom:1px solid #bfdbfe; padding-bottom:0.25rem; margin-bottom:0.5rem">Data Subjek Pajak</h4>
+                                  <div class="preview-row"><span class="preview-row-label">NIK</span><span class="preview-row-value" x-text="form.nik"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Nama WP</span><span class="preview-row-value" x-text="form.nama"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">No. WA</span><span class="preview-row-value" x-text="form.wa"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Alamat WP</span><span class="preview-row-value" style="font-size:0.75rem; text-align:right;" x-text="form.alamatWp"></span></div>
+                              </div>
+                              
+                              <!-- Data Objek Pajak -->
+                              <div style="margin-bottom:1rem">
+                                  <h4 style="font-size:0.75rem; font-weight:bold; color:#1d4ed8; border-bottom:1px solid #bfdbfe; padding-bottom:0.25rem; margin-bottom:0.5rem">Data Objek Pajak</h4>
+                                  <div class="preview-row"><span class="preview-row-label">NOP</span><span class="preview-row-value" x-text="form.nop"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Letak Objek</span><span class="preview-row-value" style="font-size:0.75rem; text-align:right;" x-text="form.letakObjek"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Kecamatan</span><span class="preview-row-value" x-text="form.kecamatan"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Kelurahan</span><span class="preview-row-value" x-text="form.kelurahan"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Luas Bumi</span><span class="preview-row-value" x-text="form.luasBumi + ' m²'"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Luas Bangunan</span><span class="preview-row-value" x-text="form.luasBangunan + ' m²'"></span></div>
+                              </div>
+                              
+                              <!-- Nilai Transaksi & Pajak -->
+                              <div style="margin-bottom:1rem">
+                                  <h4 style="font-size:0.75rem; font-weight:bold; color:#1d4ed8; border-bottom:1px solid #bfdbfe; padding-bottom:0.25rem; margin-bottom:0.5rem">Pajak & Penghitungan</h4>
+                                  <div class="preview-row"><span class="preview-row-label">Notaris / PPAT</span><span class="preview-row-value" style="font-size:0.75rem; text-align:right;" x-text="form.notaris"></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Jenis Perolehan</span><span class="preview-row-value" style="color:#1d4ed8;text-transform:uppercase" x-text="form.jenisPerolehan"></span></div>
+                                  
+                                  <template x-if="form.jenisPerolehan === 'jual_beli'">
+                                      <div>
+                                          <div class="preview-row"><span class="preview-row-label">Nilai Transaksi</span><span class="preview-row-value" x-text="fmtCurr(form.nilaiTransaksi)"></span></div>
+                                          <div class="preview-row" style="margin-top:.5rem;border-bottom:none">
+                                              <span class="confirm-total-label">Estimasi BPHTB</span>
+                                              <span class="confirm-total-value" x-text="fmtCurr(estimasiBphtb)"></span>
+                                          </div>
+                                      </div>
+                                  </template>
+                                  
+                                  <template x-if="form.jenisPerolehan !== 'jual_beli'">
+                                      <div class="preview-row" style="margin-top:.5rem;border-bottom:none">
+                                          <span class="confirm-total-label">Pajak BPHTB</span>
+                                          <span class="confirm-total-value" style="font-size:0.8rem;color:#b45309">Dihitung Verifikator</span>
+                                      </div>
+                                  </template>
+                              </div>
+                              
+                              <!-- Dokumen -->
+                              <div style="margin-bottom:0.5rem">
+                                  <h4 style="font-size:0.75rem; font-weight:bold; color:#1d4ed8; border-bottom:1px solid #bfdbfe; padding-bottom:0.25rem; margin-bottom:0.5rem">Lampiran Berkas</h4>
+                                  <div class="preview-row"><span class="preview-row-label">KTP / KK</span><span class="preview-row-value"><span x-show="fileObjects.ktp || existingFiles.url_ktp" style="color:#16a34a;font-weight:bold;font-size:0.7rem">✔️ TERLAMPIR</span><span x-show="!(fileObjects.ktp || existingFiles.url_ktp)" style="color:#dc2626;font-weight:bold;font-size:0.7rem">❌ KOSONG</span></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Sertifikat Tanah</span><span class="preview-row-value"><span x-show="fileObjects.sertifikat || existingFiles.url_sertifikat" style="color:#16a34a;font-weight:bold;font-size:0.7rem">✔️ TERLAMPIR</span><span x-show="!(fileObjects.sertifikat || existingFiles.url_sertifikat)" style="color:#dc2626;font-weight:bold;font-size:0.7rem">❌ KOSONG</span></span></div>
+                                  <div class="preview-row"><span class="preview-row-label">Berkas Pendukung</span><span class="preview-row-value"><span x-show="fileObjects.pendukung || existingFiles.url_pendukung" style="color:#16a34a;font-weight:bold;font-size:0.7rem">✔️ TERLAMPIR</span><span x-show="!(fileObjects.pendukung || existingFiles.url_pendukung)" style="color:#94a3b8;font-weight:bold;font-size:0.7rem">- (OPSIONAL)</span></span></div>
+                              </div>
+                          </div>                <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
                             <button @click="submitData()" :disabled="loading" class="btn-confirm blue">
                                 <template x-if="!loading"><span>✓ Kirim Sekarang</span></template>
                                 <template x-if="loading">

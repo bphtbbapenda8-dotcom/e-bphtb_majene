@@ -198,6 +198,10 @@ function getMenuForRole(role) {
         activeMenus = [menuPengajuan, menuRiwayat, menuVerifikasi];
     } else {
         // Notaris, Mandiri, etc
+        if (role === 'mandiri' || role === 'peorangan') {
+            menuPengajuan.subs = [{ id: 'bphtb', label: 'Pengajuan Reguler', href: 'pengajuan-bphtb.html' }];
+            menuRiwayat.subs = [{ id: 'riwayat-bphtb', label: 'Riwayat Reguler', href: 'riwayat-bphtb.html' }];
+        }
         activeMenus = [menuPengajuan, menuRiwayat];
     }
 

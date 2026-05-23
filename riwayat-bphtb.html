@@ -50,7 +50,7 @@
             <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-row">
-                    <div class="filter-field">
+                    <div class="filter-field" x-show="userRole === 'admin'">
                         <label class="field-label" style="font-size:.65rem">Filter Notaris</label>
                         <select x-model="filterNotaris" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
                             <option value="">Semua Notaris</option>
@@ -59,13 +59,24 @@
                             </template>
                         </select>
                     </div>
-                    <div class="filter-field">
+                    <div class="filter-field" x-show="userRole === 'admin'">
                         <label class="field-label" style="font-size:.65rem">Filter Jenis Perolehan</label>
                         <select x-model="filterJenis" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
                             <option value="">Semua Jenis</option>
                             <option value="jualbeli">Jual Beli</option>
                             <option value="hibah">Hibah</option>
                             <option value="waris">Waris</option>
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Filter Status Berkas</label>
+                        <select x-model="filterStatus" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                            <option value="">Semua Status</option>
+                            <option value="Menunggu Verifikasi Berkas">Menunggu Verifikasi Berkas</option>
+                            <option value="Menunggu Verifikasi Lapangan">Menunggu Verifikasi Lapangan</option>
+                            <option value="Berkas ditolak">Berkas Ditolak</option>
+                            <option value="Pembayaran">Pembayaran</option>
+                            <option value="Selesai">Selesai</option>
                         </select>
                     </div>
                     <div class="filter-actions">

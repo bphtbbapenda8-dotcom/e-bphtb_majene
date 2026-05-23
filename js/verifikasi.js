@@ -11,6 +11,7 @@ function verifikasiApp(mode) {
         searchQuery: '',
         filterJenis: '', // reguler, mbr
         filterStatus: '', // menunggu, disetujui, ditolak
+        filterNotaris: '', // nama notaris
 
         showModal: false,
         selectedBerkas: null,
@@ -112,6 +113,11 @@ function verifikasiApp(mode) {
                     }
                     return statusVal && statusVal.toLowerCase() === this.filterStatus;
                 });
+            }
+
+            if (this.filterNotaris) {
+                const qn = this.filterNotaris.toLowerCase();
+                res = res.filter(item => item.notaris && item.notaris.toLowerCase().includes(qn));
             }
 
             return res;

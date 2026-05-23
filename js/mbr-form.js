@@ -32,12 +32,21 @@ function mbrFormApp() {
         // Formatted display values
         dispTransaksi: '', dispPenghasilan: '',
 
-        // File info (Added perjanjianKredit)
+        // File info
         files: {
-            ktp: null, kk: null, sppt: null,
-            stpd: null, bukti_bayar: null,
-            perjanjian_kredit: null, sptjm: null,
-            sertifikat: null
+            ktp: null,
+            sertifikat: null,
+            pendukung: null,
+            suratMbr: null,
+            perjanjianKredit: null
+        },
+
+        fileObjects: {
+            ktp: null,
+            sertifikat: null,
+            pendukung: null,
+            suratMbr: null,
+            perjanjianKredit: null
         },
 
         // NIK Validation State
@@ -282,15 +291,15 @@ function mbrFormApp() {
                 return;
             }
             if (!this.isEditMode) {
-                if (!this.files.ktp || !this.files.sertifikat || !this.files.suratMbr || !this.files.perjanjianKredit) {
+                if (!this.files?.ktp || !this.files?.sertifikat || !this.files?.suratMbr || !this.files?.perjanjianKredit) {
                     Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap unggah KTP/KK, Sertifikat Tanah, Surat Keterangan MBR, dan Surat Perjanjian Kredit.', confirmButtonColor: '#16a34a' });
                     return;
                 }
             } else {
-                if ((!this.files.ktp && !this.existingFiles.url_ktp) || 
-                    (!this.files.sertifikat && !this.existingFiles.url_sertifikat) || 
-                    (!this.files.suratMbr && !this.existingFiles.url_surat_mbr) ||
-                    (!this.files.perjanjianKredit && !this.existingFiles.url_perjanjian_kredit)) {
+                if ((!this.files?.ktp && !this.existingFiles?.url_ktp) || 
+                    (!this.files?.sertifikat && !this.existingFiles?.url_sertifikat) || 
+                    (!this.files?.suratMbr && !this.existingFiles?.url_surat_mbr) ||
+                    (!this.files?.perjanjianKredit && !this.existingFiles?.url_perjanjian_kredit)) {
                     Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap pastikan KTP/KK, Sertifikat Tanah, Surat Keterangan MBR, dan Surat Perjanjian Kredit tersedia.', confirmButtonColor: '#16a34a' });
                     return;
                 }
@@ -314,7 +323,7 @@ function mbrFormApp() {
                 let perjanjianKreditUrl = this.existingFiles.url_perjanjian_kredit;
 
                 // Check if any new files are being uploaded
-                if (this.fileObjects.ktp || this.fileObjects.sertifikat || this.fileObjects.pendukung || this.fileObjects.suratMbr || this.fileObjects.perjanjianKredit) {
+                if (this.fileObjects?.ktp || this.fileObjects?.sertifikat || this.fileObjects?.pendukung || this.fileObjects?.suratMbr || this.fileObjects?.perjanjianKredit) {
                     Swal.fire({
                         title: 'Mengunggah Berkas...',
                         text: 'Menyimpan file ke Google Drive (1/2)',
@@ -323,13 +332,13 @@ function mbrFormApp() {
                     });
 
                     const formData = new FormData();
-                    formData.append('aksi', 'upload_file_saja');
+                    formData.append('aksi', 'upload_file_mbr');
                     formData.append('nik', this.form.nik);
-                    if (this.fileObjects.ktp)              formData.append('ktp_file',              await toBase64(this.fileObjects.ktp));
-                    if (this.fileObjects.sertifikat)       formData.append('sertifikat_file',       await toBase64(this.fileObjects.sertifikat));
-                    if (this.fileObjects.pendukung)        formData.append('pendukung_file',        await toBase64(this.fileObjects.pendukung));
-                    if (this.fileObjects.suratMbr)         formData.append('surat_mbr_file',         await toBase64(this.fileObjects.suratMbr));
-                    if (this.fileObjects.perjanjianKredit) formData.append('perjanjian_kredit_file', await toBase64(this.fileObjects.perjanjianKredit));
+                    if (this.fileObjects?.ktp)              formData.append('ktp_file',              await toBase64(this.fileObjects.ktp));
+                    if (this.fileObjects?.sertifikat)       formData.append('sertifikat_file',       await toBase64(this.fileObjects.sertifikat));
+                    if (this.fileObjects?.pendukung)        formData.append('pendukung_file',        await toBase64(this.fileObjects.pendukung));
+                    if (this.fileObjects?.suratMbr)         formData.append('surat_mbr_file',         await toBase64(this.fileObjects.suratMbr));
+                    if (this.fileObjects?.perjanjianKredit) formData.append('perjanjian_kredit_file', await toBase64(this.fileObjects.perjanjianKredit));
 
                     const scriptRes = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                     const scriptResult = await scriptRes.json();

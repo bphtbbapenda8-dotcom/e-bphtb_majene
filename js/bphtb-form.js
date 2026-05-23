@@ -291,15 +291,17 @@ function bphtbFormApp() {
                     luas_bangunan:  this.form.luasBangunan,
                     njop_bangunan:  this.form.njopBangunan,
                     total_njop:     this.totalNjop,
-                    nilai_transaksi: this.form.nilaiTransaksi,
+                    nilai_transaksi: this.form.jenisPerolehan === 'jual_beli' ? this.form.nilaiTransaksi : 0,
                     jenis_perolehan: this.form.jenisPerolehan,
                     notaris:        this.form.notaris,
-                    pajak:          this.estimasiBphtb,
+                    pajak:          this.form.jenisPerolehan === 'jual_beli' ? this.estimasiBphtb : 0,
                     url_ktp:        ktpUrl,
                     url_sertifikat: sertifikatUrl,
                     url_pendukung:  pendukungUrl,
                     alur_berkas:    'Berkas sedang diverifikasi', // Reset status to 'Berkas sedang diverifikasi'
-                    catatan_penolakan: null // Clear rejection notes on resubmission
+                    catatan_penolakan: null, // Clear rejection notes on resubmission
+                    status_persetujuan_wp: null,
+                    komentar_wp: null
                 };
 
                 if (this.isEditMode) {

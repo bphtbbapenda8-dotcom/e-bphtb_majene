@@ -11,6 +11,8 @@ function riwayatApp(type) {
         loading: false,
         filterNotaris: '',
         filterJenis: '',
+        filterStatus: '',
+        userRole: '',
         showRincian: false,
         selectedBerkas: null,
         errorMsg: '',
@@ -54,18 +56,19 @@ function riwayatApp(type) {
                 const userStr = sessionStorage.getItem('ebphtb_user_data');
                 if (userStr) {
                     const userData = JSON.parse(userStr);
-                    const role = userData.role;
+                    this.userRole = userData.role;
                     const namaUser = userData.nama;
 
-                    if (role === 'notaris') {
+                    if (this.userRole === 'notaris') {
                         q = q.eq('notaris', namaUser);
-                    } else if (role === 'mandiri') {
+                    } else if (this.userRole === 'mandiri') {
                         q = q.ilike('nama', `%${namaUser}%`);
                     }
                 }
 
                 if (this.filterNotaris) q = q.eq('notaris', this.filterNotaris);
                 if (this.filterJenis && !this.isMbr) q = q.eq('jenis_perolehan', this.filterJenis);
+                if (this.filterStatus) q = q.eq('alur_berkas', this.filterStatus);
 
                 const result = await q;
                 if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
@@ -88,6 +91,7 @@ function riwayatApp(type) {
         resetFilter() {
             this.filterNotaris = '';
             this.filterJenis   = '';
+            this.filterStatus  = '';
             this.fetchData();
         },
 

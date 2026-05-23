@@ -14,7 +14,7 @@ function bphtbFormApp() {
             njopBumi: 0, njopBangunan: 0,
             nilaiTransaksi: 0,
             latitude: '', longitude: '',
-            jenisPerolehan: 'jualbeli',
+            jenisPerolehan: '',
             notaris: ''
         },
 
@@ -95,7 +95,7 @@ function bphtbFormApp() {
                 this.form.njopBumi = data.njop_bumi || 0;
                 this.form.njopBangunan = data.njop_bangunan || 0;
                 this.form.nilaiTransaksi = data.nilai_transaksi || 0;
-                this.form.jenisPerolehan = data.jenis_perolehan || 'jualbeli';
+                this.form.jenisPerolehan = data.jenis_perolehan || '';
                 this.form.notaris = data.notaris || '';
 
                 // Populate display currency values
@@ -153,7 +153,7 @@ function bphtbFormApp() {
         },
 
         get npoptkp() {
-            return this.form.jenisPerolehan === 'waris' ? 300000000 : 80000000;
+            return (this.form.jenisPerolehan === 'Waris' || this.form.jenisPerolehan === 'Hibah wasiat') ? 300000000 : 80000000;
         },
 
         get estimasiBphtb() {

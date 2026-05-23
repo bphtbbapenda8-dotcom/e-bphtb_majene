@@ -224,9 +224,49 @@
 
                                     <!-- Tombol Lama Khusus Reguler -->
                                     <template x-if="!selectedBerkas?.isMbr">
-                                        <div class="mt-6 border-t border-slate-200 pt-4 flex gap-3 justify-end">
-                                            <button @click="tolakBerkas()" class="btn-action btn-action-red" style="padding:.5rem 1rem">Tolak (Lokasi Tidak Sesuai)</button>
-                                            <button @click="setujuiBerkas()" class="btn-action btn-action-green" style="padding:.5rem 1rem">Selesai Verifikasi Lapangan</button>
+                                        <div class="mt-6 border-t border-slate-200 pt-4">
+                                            
+                                            <template x-if="selectedBerkas?.jenis_perolehan !== 'jual_beli'">
+                                                <div style="background:#f8fafc; padding:1.25rem; border-radius:0.75rem; border:1px solid #e2e8f0; margin-bottom:1rem;">
+                                                    <div class="modal-section-title" style="margin-bottom: 0.5rem; color:#1e40af;">Perhitungan Pajak (Non-Jual Beli)</div>
+                                                    
+                                                    <template x-if="selectedBerkas?.komentar_wp && selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp'">
+                                                        <div style="background:#fff7ed; padding:1rem; border-left:4px solid #f97316; margin-bottom:1rem;">
+                                                            <div style="font-size:0.75rem; color:#9a3412; font-weight:bold; margin-bottom:0.25rem;">Komentar WP / Pendapat Lain:</div>
+                                                            <div style="font-size:0.875rem; color:#431407;" x-text="selectedBerkas.komentar_wp"></div>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <template x-if="selectedBerkas?.status_persetujuan_wp === 'disetujui_wp'">
+                                                        <div style="background:#f0fdf4; padding:1rem; border-left:4px solid #16a34a; margin-bottom:1rem;">
+                                                            <div style="font-size:0.75rem; color:#166534; font-weight:bold; margin-bottom:0.25rem;">Status Persetujuan:</div>
+                                                            <div style="font-size:0.875rem; color:#14532d;">Wajib Pajak telah MENYETUJUI nominal pajak yang ditetapkan sebesar <b x-text="fmtCurr(selectedBerkas.pajak_ditetapkan)"></b>.</div>
+                                                        </div>
+                                                    </template>
+
+                                                    <template x-if="selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp'">
+                                                        <div>
+                                                            <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">Input Nominal Pajak Ditetapkan</label>
+                                                            <input type="text" x-model="lapanganForm.pajak_ditetapkan_disp" @input="onRpInput($event, 'pajak_ditetapkan')" class="input-field" placeholder="Rp 0">
+                                                            <p style="font-size:0.75rem; color:#64748b; margin-top:0.25rem;">Pajak ini akan dikirimkan ke WP untuk disetujui. Isi 0 jika Nihil.</p>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+
+                                            <div class="flex gap-3 justify-end">
+                                                <button @click="tolakBerkas()" class="btn-action btn-action-red" style="padding:.5rem 1rem">Tolak (Lokasi Tidak Sesuai)</button>
+                                                
+                                                <!-- Jika Jual Beli ATAU Non-Jual Beli tapi sudah disetujui WP, tampilkan tombol Selesai Verifikasi Lapangan -->
+                                                <template x-if="selectedBerkas?.jenis_perolehan === 'jual_beli' || selectedBerkas?.status_persetujuan_wp === 'disetujui_wp'">
+                                                    <button @click="setujuiBerkas()" class="btn-action btn-action-green" style="padding:.5rem 1rem">Selesai Verifikasi Lapangan</button>
+                                                </template>
+                                                
+                                                <!-- Jika Non-Jual Beli dan belum disetujui WP -->
+                                                <template x-if="selectedBerkas?.jenis_perolehan !== 'jual_beli' && selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp'">
+                                                    <button @click="kirimPajakKeWp()" class="btn-action btn-action-blue" style="padding:.5rem 1rem">Tetapkan Pajak & Kirim ke WP</button>
+                                                </template>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>

@@ -162,13 +162,13 @@
                                     <label class="field-label" style="color:#2563eb">Total NJOP (Otomatis)</label>
                                     <div class="computed-field mt-1" x-text="fmtCurr(totalNjop)"></div>
                                 </div>
-                                <div>
+                                <div x-show="form.jenisPerolehan === 'jual_beli'">
                                     <label class="field-label" style="color:#16a34a">Nilai Transaksi / Harga Pasar</label>
                                     <input type="text" x-model="dispTransaksi" @input="onRpInput($event,'nilaiTransaksi')" class="input-field mt-1" placeholder="Rp 0">
                                 </div>
                                 <div>
-                                   <label class="field-label">Jenis Perolehan Hak</label>
-<select x-model="form.jenisPerolehhan" class="input-field mt-1" required>
+                                 <label class="field-label">Jenis Perolehan Hak</label>
+<select x-model="form.jenisPerolehan" class="input-field mt-1" required>
     <option value="">-- Pilih Jenis Perolehan --</option>
     
     <optgroup label="Pemindahan hak karena:">
@@ -204,7 +204,7 @@
                                 </div>
                             </div>
                             <!-- Estimasi -->
-                            <div class="calc-box">
+                            <div class="calc-box" x-show="form.jenisPerolehan === 'jual_beli'">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
                                     <span class="calc-box-label">Estimasi Pajak Terhutang</span>
                                     <span class="badge badge-blue" style="font-size:.65rem">BPHTB 5%</span>

@@ -31,7 +31,9 @@ function verifikasiApp(mode) {
             kondisi_tanah: '',
             jenis_bangunan: '',
             luas_bangunan: '',
-            luas_tanah: ''
+            luas_tanah: '',
+            pajak_ditetapkan: 0,
+            pajak_ditetapkan_disp: ''
         },
 
         init() {
@@ -140,11 +142,19 @@ function verifikasiApp(mode) {
                     kondisi_tanah: '',
                     jenis_bangunan: '',
                     luas_bangunan: '',
-                    luas_tanah: ''
+                    luas_tanah: '',
+                    pajak_ditetapkan: 0,
+                    pajak_ditetapkan_disp: ''
                 };
             }
 
             this.showModal = true;
+        },
+
+        onRpInput(e, field) {
+            const val = parseRp(e.target.value);
+            this.lapanganForm[field] = val;
+            e.target.value = val ? fmtRpDisplay(val) : '';
         },
 
         async submitVerifikasi() {
@@ -194,6 +204,35 @@ function verifikasiApp(mode) {
 
             if (!confirm.isConfirmed) return;
             this.updateStatus(statusValue, catatan, payloadTambahan);
+        },
+
+        async kirimPajakKeWp() {
+            if (this.lapanganForm.pajak_ditetapkan === undefined || this.lapanganForm.pajak_ditetapkan === '') {
+                Swal.fire('Error', 'Silakan isi nominal pajak yang ditetapkan (isi 0 jika nihil).', 'error');
+                return;
+            }
+
+            try {
+                this.loading = true;
+                const { error } = await db.from('pengajuan_bphtb')
+                    .update({ 
+                        pajak_ditetapkan: this.lapanganForm.pajak_ditetapkan,
+                        status_persetujuan_wp: 'menunggu_wp',
+                        alur_berkas: 'Menunggu Persetujuan Wajib Pajak'
+                    })
+                    .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
+
+                if (error) throw error;
+
+                Swal.fire('Sukses', 'Pajak berhasil ditetapkan dan dikirim ke WP untuk persetujuan.', 'success');
+                this.showModal = false;
+                this.fetchData();
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Gagal mengirim ke WP', 'error');
+            } finally {
+                this.loading = false;
+            }
         },
 
         async tolakBerkas() {

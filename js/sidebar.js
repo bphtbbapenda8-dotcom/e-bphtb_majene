@@ -231,6 +231,9 @@ function initSidebar() {
             overlay.classList.remove('visible');
         });
     }
+
+    // Initialize Notifications
+    initNotifications(userData);
 }
 
 // ── Access Enforcement ────────────────────────────────────────────
@@ -281,4 +284,130 @@ function toggleSidebarMenu(menuId) {
             }
         });
     });
+}
+
+// ──────────────── Notification System ────────────────
+
+async function initNotifications(userData) {
+    const topbar = document.querySelector('.topbar');
+    if (!topbar) return;
+
+    // Create Notification UI
+    const notifHTML = `
+      <div id="notif-wrapper" style="position:relative; margin-right: 0.5rem; display:flex; align-items:center;">
+          <button id="notif-btn" style="background:transparent; border:none; cursor:pointer; position:relative; padding:0.5rem; color:#475569;">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:22px; height:22px;">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              <span id="notif-badge" style="display:none; position:absolute; top:4px; right:4px; background:#ef4444; color:#fff; font-size:0.65rem; font-weight:bold; border-radius:999px; width:16px; height:16px; align-items:center; justify-content:center;">0</span>
+          </button>
+          
+          <div id="notif-dropdown" style="display:none; position:absolute; top:100%; right:0; background:#fff; border:1px solid #e2e8f0; border-radius:0.5rem; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); width:300px; z-index:1000; padding:1rem; margin-top:0.5rem;">
+              <h4 style="font-size:0.8rem; font-weight:bold; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem; margin-bottom:0.5rem; color:#1e293b;">Pemberitahuan</h4>
+              <div id="notif-content" style="font-size:0.75rem; color:#475569; display:flex; flex-direction:column; gap:0.5rem;">
+                  <span style="color:#94a3b8">Memuat data...</span>
+              </div>
+          </div>
+      </div>
+    `;
+
+    const logoutBtn = topbar.querySelector('.topbar-logout-btn');
+    if (logoutBtn) {
+        logoutBtn.insertAdjacentHTML('beforebegin', notifHTML);
+    }
+
+    const notifBtn = document.getElementById('notif-btn');
+    const notifDropdown = document.getElementById('notif-dropdown');
+    const notifBadge = document.getElementById('notif-badge');
+    const notifContent = document.getElementById('notif-content');
+
+    // Toggle logic
+    notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = notifDropdown.style.display === 'block';
+        notifDropdown.style.display = isVisible ? 'none' : 'block';
+    });
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('notif-wrapper')?.contains(e.target)) {
+            if (notifDropdown) notifDropdown.style.display = 'none';
+        }
+    });
+
+    // Fetch data based on role
+    try {
+        let count = 0;
+        let messages = [];
+
+        if (userData.role === 'admin' || userData.role === 'verifikator_berkas') {
+            const { count: c, error } = await db.from('pengajuan_bphtb')
+                .select('*', { count: 'exact', head: true })
+                .eq('alur_berkas', 'Menunggu Verifikasi');
+            
+            if (c > 0) {
+                count += c;
+                messages.push(`Ada <b>${c} berkas pengajuan baru</b> yang menunggu verifikasi tahap pertama.`);
+            }
+        } 
+        
+        if (userData.role === 'admin' || userData.role === 'verifikator_lapangan') {
+            const { count: c1 } = await db.from('pengajuan_bphtb')
+                .select('*', { count: 'exact', head: true })
+                .eq('alur_berkas', 'Proses Lapangan')
+                .eq('verifikasi_lapangan_status', 'menunggu');
+
+            if (c1 > 0) {
+                count += c1;
+                messages.push(`Ada <b>${c1} berkas pengajuan</b> yang menunggu Verifikasi Lapangan.`);
+            }
+
+            const { count: c2 } = await db.from('pengajuan_bphtb')
+                .select('*', { count: 'exact', head: true })
+                .eq('status_persetujuan_wp', 'dikomentari_wp');
+            if (c2 > 0) {
+                count += c2;
+                messages.push(`Ada <b>${c2} tanggapan/komentar baru</b> dari WP terkait ketetapan pajak.`);
+            }
+        }
+
+        if (userData.role === 'notaris' || userData.role === 'mandiri') {
+            const { count: c1 } = await db.from('pengajuan_bphtb')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userData.id)
+                .eq('alur_berkas', 'Berkas ditolak');
+            if (c1 > 0) {
+                count += c1;
+                messages.push(`Ada <b>${c1} berkas pengajuan</b> Anda yang ditolak dan perlu diperbaiki.`);
+            }
+
+            const { count: c2 } = await db.from('pengajuan_bphtb')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userData.id)
+                .eq('status_persetujuan_wp', 'menunggu_wp');
+            if (c2 > 0) {
+                count += c2;
+                messages.push(`Ada <b>${c2} berkas</b> yang membutuhkan persetujuan Anda atas nilai pajak.`);
+            }
+
+            const { count: c3 } = await db.from('pengajuan_bphtb')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userData.id)
+                .eq('stpd_status', 'Menunggu Pembayaran');
+            if (c3 > 0) {
+                count += c3;
+                messages.push(`Ada <b>${c3} STPD</b> yang menunggu pembayaran Anda.`);
+            }
+        }
+
+        if (count > 0) {
+            notifBadge.style.display = 'flex';
+            notifBadge.textContent = count > 9 ? '9+' : count;
+            notifContent.innerHTML = messages.map(m => `<div style="padding:0.5rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:0.25rem;">${m}</div>`).join('');
+        } else {
+            notifBadge.style.display = 'none';
+            notifContent.innerHTML = `<div style="padding:0.5rem; text-align:center;">Belum ada pemberitahuan baru.</div>`;
+        }
+    } catch (e) {
+        console.error('Error loading notifications:', e);
+        notifContent.innerHTML = `<span style="color:#ef4444">Gagal memuat notifikasi.</span>`;
+    }
 }

@@ -426,9 +426,11 @@
             </div>
 
             <!-- Modal Pengaturan Surat Keterangan -->
-            <div x-show="showSuratModal" class="modal-overlay" style="display:none;z-index:999">
-                <div class="modal-content" style="max-width:400px;border-top:4px solid #059669">
-                    <div class="modal-header">
+            <div x-show="showSuratModal" x-cloak class="modal-overlay" style="z-index:999">
+                <div class="modal-backdrop" @click="!loading && (showSuratModal=false)"></div>
+                <div class="modal-container">
+                    <div class="modal-box modal-box-sm" style="border-top:4px solid #059669">
+                        <div class="modal-header">
                         <h2 class="modal-title" style="color:#064e3b">Pengaturan Surat Keterangan</h2>
                         <button @click="showSuratModal=false" class="modal-close">&times;</button>
                     </div>
@@ -450,6 +452,7 @@
                             </button>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
 

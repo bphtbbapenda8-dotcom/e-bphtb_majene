@@ -14,6 +14,8 @@ function riwayatApp(type) {
         showRincian: false,
         selectedBerkas: null,
         errorMsg: '',
+        showKomentarPanel: false,
+        komentarWp: '',
 
         // File upload states (Main Payment)
         buktiFileObj: null,
@@ -92,12 +94,74 @@ function riwayatApp(type) {
         openRincian(item) {
             this.selectedBerkas = item;
             this.showRincian = true;
+            this.showKomentarPanel = false;
+            this.komentarWp = '';
             
             // Reset upload fields
             this.buktiFileObj = null;
             this.buktiFileName = '';
             this.stpdFileObj = null;
             this.stpdFileName = '';
+        },
+
+        async terimaPajak() {
+            const confirmed = await Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah Anda menyetujui nominal pajak yang ditetapkan dan ingin melanjutkan ke tahap verifikasi akhir / pencetakan tagihan?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal'
+            });
+
+            if (confirmed.isConfirmed) {
+                try {
+                    this.loading = true;
+                    const { error } = await db.from('pengajuan_bphtb')
+                        .update({ 
+                            status_persetujuan_wp: 'disetujui_wp',
+                            alur_berkas: 'Berkas sedang diverifikasi' // Returns to verifier queue
+                        })
+                        .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
+
+                    if (error) throw error;
+                    
+                    Swal.fire('Sukses', 'Persetujuan berhasil dikirim. Berkas Anda akan segera diproses.', 'success');
+                    this.showRincian = false;
+                    this.fetchData();
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Gagal memproses persetujuan.', 'error');
+                } finally {
+                    this.loading = false;
+                }
+            }
+        },
+
+        async kirimKomentar() {
+            if (!this.komentarWp.trim()) return;
+
+            try {
+                this.loading = true;
+                const { error } = await db.from('pengajuan_bphtb')
+                    .update({ 
+                        status_persetujuan_wp: 'dikomentari_wp',
+                        komentar_wp: this.komentarWp,
+                        alur_berkas: 'Berkas sedang diverifikasi' // Returns to verifier queue
+                    })
+                    .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
+
+                if (error) throw error;
+                
+                Swal.fire('Sukses', 'Komentar/Sanggahan Anda telah dikirim ke petugas BAPENDA.', 'success');
+                this.showRincian = false;
+                this.fetchData();
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Gagal mengirim komentar.', 'error');
+            } finally {
+                this.loading = false;
+            }
         },
 
         // ── Main Payment Upload ─────────────────────────────────────

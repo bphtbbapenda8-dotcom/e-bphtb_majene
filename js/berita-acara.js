@@ -143,66 +143,66 @@ async function generateBeritaAcaraMBR(d) {
     // Teks header di tengah
     setFont('bold', 13);
     doc.text('PEMERINTAH KABUPATEN MAJENE', pw / 2, y + 3, { align: 'center' });
-    y += 6;
+    y += 5;
     setFont('bold', 12);
     doc.text('BADAN PENDAPATAN DAERAH', pw / 2, y + 3, { align: 'center' });
-    y += 5;
+    y += 4;
     setFont('normal', 9);
     doc.text('Jl. Jend. Gatot Subroto No. 58 Majene', pw / 2, y + 3, { align: 'center' });
-    y += 7;
+    y += 5;
 
     // Ensure enough room after logo
     if (logoDataUrl) {
-        y = Math.max(y, headerTopY + logoSize + 2);
+        y = Math.max(y, headerTopY + logoSize + 1);
     }
 
     // Garis tebal bawah header
     doc.setLineWidth(0.8); doc.line(lm, y, rm, y);
     doc.setLineWidth(0.3); doc.line(lm, y + 1.2, rm, y + 1.2);
-    y += 8;
+    y += 6;
 
     // ── JUDUL ─────────────────────────────────────────────────────
-    centerText('BERITA ACARA VERIFIKASI', y, 12, 'bold'); y += 6;
-    centerText('Nomor: ' + nomorDoc, y, 10, 'normal'); y += 9;
+    centerText('BERITA ACARA VERIFIKASI', y, 12, 'bold'); y += 5;
+    centerText('Nomor: ' + nomorDoc, y, 10, 'normal'); y += 7;
 
     // ── KALIMAT PEMBUKA ───────────────────────────────────────────
     setFont('normal', 10);
     const bukaText = `Pada hari ini, tanggal ${hari} bulan ${bulanNama} tahun ${tahunTerbilang}, kami yang bertanda tangan di bawah ini, Tim Verifikasi Badan Pendapatan Daerah Kabupaten Majene, telah melakukan peninjauan lapangan terhadap objek pajak BPHTB dengan data sebagai berikut:`;
     const bukaLines = doc.splitTextToSize(bukaText, cw);
     doc.text(bukaLines, lm, y);
-    y += bukaLines.length * 5 + 4;
+    y += bukaLines.length * 4.5 + 3;
 
     // ── SECTION I: DATA WAJIB PAJAK ───────────────────────────────
     setFont('bold', 10);
-    doc.text('I.  DATA WAJIB PAJAK / PEMOHON', lm, y); y += 6;
-    fieldLine('Nama Wajib Pajak', d.nama, y);    y += 5.5;
-    fieldLine('NIK', d.nik, y);                   y += 5.5;
+    doc.text('I.  DATA WAJIB PAJAK / PEMOHON', lm, y); y += 5;
+    fieldLine('Nama Wajib Pajak', d.nama, y);    y += 4.5;
+    fieldLine('NIK', d.nik, y);                   y += 4.5;
     const alamatWP    = d.alamat_wp || d.alamat_op || '-';
     const alamatLines = doc.splitTextToSize(alamatWP, cw - 59);
     setFont('normal', 10);
     doc.text('Alamat', lm + 6, y); doc.text(':', lm + 55, y);
     setFont('bold', 10); doc.text(alamatLines, lm + 59, y);
-    y += Math.max(1, alamatLines.length) * 5 + 4;
+    y += Math.max(1, alamatLines.length) * 4.5 + 3;
 
     // ── SECTION II: DATA OBJEK PAJAK ──────────────────────────────
     setFont('bold', 10);
-    doc.text('II. DATA OBJEK PAJAK', lm, y); y += 6;
-    fieldLine('NOP PBB', d.nop, y); y += 5.5;
+    doc.text('II. DATA OBJEK PAJAK', lm, y); y += 5;
+    fieldLine('NOP PBB', d.nop, y); y += 4.5;
     const letakText  = d.letak_tanah_bangunan || d.alamat_op || '-';
     const letakLines = doc.splitTextToSize(letakText, cw - 59);
     setFont('normal', 10);
     doc.text('Letak Objek Pajak', lm + 6, y); doc.text(':', lm + 55, y);
     setFont('bold', 10); doc.text(letakLines, lm + 59, y);
-    y += Math.max(1, letakLines.length) * 5;
-    fieldLine('Luas Tanah (m\u00B2)',    String(d.luas_bumi     || 0), y); y += 5.5;
-    fieldLine('Luas Bangunan (m\u00B2)', String(d.luas_bangunan || 0), y); y += 5.5;
-    fieldLine('Jenis Perolehan', 'JUAL BELI', y); y += 9;
+    y += Math.max(1, letakLines.length) * 4.5;
+    fieldLine('Luas Tanah (m\u00B2)',    String(d.luas_bumi     || 0), y); y += 4.5;
+    fieldLine('Luas Bangunan (m\u00B2)', String(d.luas_bangunan || 0), y); y += 4.5;
+    fieldLine('Jenis Perolehan', 'JUAL BELI', y); y += 6;
 
     // ── SECTION III: HASIL VERIFIKASI ─────────────────────────────
     setFont('bold', 10);
-    doc.text('III. HASIL VERIFIKASI', lm, y); y += 5;
+    doc.text('III. HASIL VERIFIKASI', lm, y); y += 4.5;
     setFont('normal', 10);
-    doc.text('Berdasarkan hasil Verifikasi, ditemukan fakta-fakta sebagai berikut:', lm + 6, y); y += 6;
+    doc.text('Berdasarkan hasil Verifikasi, ditemukan fakta-fakta sebagai berikut:', lm + 6, y); y += 5;
 
     // Helper drawCheckbox
     const drawCheckbox = (cx, cy, checked) => {
@@ -222,7 +222,7 @@ async function generateBeritaAcaraMBR(d) {
 
     // A. Berkas
     setFont('bold', 9.5);
-    doc.text('A.  Berkas', lm + 6, y); y += 6;
+    doc.text('A.  Berkas', lm + 6, y); y += 5;
     setFont('normal', 9);
     
     // 1. Status Perkawinan
@@ -230,14 +230,14 @@ async function generateBeritaAcaraMBR(d) {
     doc.text(':', lm + 45, y);
     drawCheckbox(lm + 48, y, vfBerkas.status_perkawinan === 'menikah'); doc.text('Menikah', lm + 54, y);
     drawCheckbox(lm + 100, y, vfBerkas.status_perkawinan === 'belum_menikah'); doc.text('Belum Menikah', lm + 106, y);
-    y += 6;
+    y += 4.5;
 
     // 2. Penghasilan
     doc.text('2.  penghasilan', lm + 10, y);
     doc.text(':', lm + 45, y);
     drawCheckbox(lm + 48, y, vfBerkas.penghasilan === 'dibawah_8juta'); doc.text('dibawah Rp.8.000.000,-', lm + 54, y);
     drawCheckbox(lm + 100, y, vfBerkas.penghasilan === 'dibawah_7juta'); doc.text('dibawah Rp.7.000.000', lm + 106, y);
-    y += 6;
+    y += 4.5;
 
     // 3. Kelengkapan Berkas
     doc.text('3.  Kelengkapan Berkas', lm + 10, y);
@@ -245,23 +245,23 @@ async function generateBeritaAcaraMBR(d) {
     drawCheckbox(lm + 48, y, keleng.ktp); doc.text('KTP', lm + 54, y);
     drawCheckbox(lm + 65, y, keleng.kk); doc.text('Kartu Keluarga', lm + 71, y);
     drawCheckbox(lm + 100, y, keleng.sertifikat); doc.text('Sertifikat (SHGB)', lm + 106, y);
-    y += 6;
+    y += 4.5;
     drawCheckbox(lm + 48, y, keleng.ajb); doc.text('AJB/Ket. Jual Beli', lm + 54, y);
     drawCheckbox(lm + 85, y, keleng.spk); doc.text('Surat Perjanjian Kredit', lm + 91, y);
     drawCheckbox(lm + 130, y, keleng.sppt); doc.text('SPPT PBB', lm + 136, y);
-    y += 6;
+    y += 4.5;
     drawCheckbox(lm + 48, y, keleng.ket_rumah); doc.text('Surat Ket. Tidak Memiliki Rumah', lm + 54, y);
-    y += 6;
+    y += 4.5;
 
     // 4. Harga
     doc.text('4.  Harga', lm + 10, y);
     doc.text(':', lm + 45, y);
     doc.text('Rp ' + (vfBerkas.harga ? parseInt(vfBerkas.harga).toLocaleString('id-ID') : (d.nilai_transaksi || 0).toLocaleString('id-ID')), lm + 48, y);
-    y += 6;
+    y += 4.5;
 
     // B. Kesesuaian Data dilapangan
     setFont('bold', 9.5);
-    doc.text('B.  Kesesuaian Data dengan realitas dilapangan', lm + 6, y); y += 6;
+    doc.text('B.  Kesesuaian Data dengan realitas dilapangan', lm + 6, y); y += 5;
     setFont('normal', 9);
 
     // 1. Kondisi Fisik Tanah
@@ -269,36 +269,36 @@ async function generateBeritaAcaraMBR(d) {
     doc.text(':', lm + 60, y);
     drawCheckbox(lm + 63, y, vfLap.kondisi_tanah === 'tanah_kosong'); doc.text('Tanah Kosong', lm + 69, y);
     drawCheckbox(lm + 100, y, vfLap.kondisi_tanah === 'tanah_bangunan'); doc.text('Tanah & Bangunan', lm + 106, y);
-    y += 6;
+    y += 4.5;
 
     // 2. Jenis Bangunan
     doc.text('2.  Jenis Bangunan', lm + 10, y);
     doc.text(':', lm + 60, y);
     drawCheckbox(lm + 63, y, vfLap.jenis_bangunan === 'permanen'); doc.text('Permanen', lm + 69, y);
     drawCheckbox(lm + 100, y, vfLap.jenis_bangunan === 'semi_permanen'); doc.text('Semi Permanen', lm + 106, y);
-    y += 6;
+    y += 4.5;
 
     // 3. Luas Bangunan
     doc.text('3.  Luas Bangunan 36 M\u00B2', lm + 10, y);
     doc.text(':', lm + 60, y);
     drawCheckbox(lm + 63, y, vfLap.luas_bangunan === 'sesuai'); doc.text('Sesuai', lm + 69, y);
     drawCheckbox(lm + 85, y, vfLap.luas_bangunan === 'tidak_sesuai'); doc.text('Tidak Sesuai', lm + 91, y);
-    y += 6;
+    y += 4.5;
 
     // 4. Luas Tanah Sesuai Dengan Sertifikat
     doc.text('4.  Luas Tanah Sesuai Dengan Sertifikat', lm + 10, y);
     doc.text(':', lm + 85, y);
     drawCheckbox(lm + 88, y, vfLap.luas_tanah === 'sesuai'); doc.text('Sesuai', lm + 94, y);
     drawCheckbox(lm + 110, y, vfLap.luas_tanah === 'tidak_sesuai'); doc.text('Tidak Sesuai', lm + 116, y);
-    y += 8;
+    y += 6;
 
     // C. KESIMPULAN / CATATAN TIM VERIFIKASI
     setFont('bold', 10);
-    doc.text('C. KESIMPULAN / CATATAN TIM VERIFIKASI', lm, y); y += 6;
+    doc.text('C. KESIMPULAN / CATATAN TIM VERIFIKASI', lm, y); y += 5;
     doc.setLineDash([1.5, 1.5]);
     doc.line(lm + 5, y, rm - 5, y);
     doc.setLineDash([]);
-    y += 7;
+    y += 5;
 
     const isLayak = d.verifikasi_berkas_status === 'disetujui' && d.verifikasi_lapangan_status === 'disetujui';
     const isTidakLayak = d.verifikasi_berkas_status === 'ditolak' || d.verifikasi_lapangan_status === 'ditolak';
@@ -312,69 +312,75 @@ async function generateBeritaAcaraMBR(d) {
     if (vfBerkas.hak_pertama) {
         doc.line(lm + 36, y - 1.5, lm + 37.5, y - 0.5); doc.line(lm + 37.5, y - 0.5, lm + 39.5, y - 3.5);
     }
-    doc.text('PEROLEHAN HAK PERTAMA', lm + 45, y); y += 7;
+    doc.text('PEROLEHAN HAK PERTAMA', lm + 45, y); y += 6;
 
     // Box 2: Layak
     doc.rect(lm + 35, y - 4, 5, 5);
     if (isLayak) {
         doc.line(lm + 36, y - 1.5, lm + 37.5, y - 0.5); doc.line(lm + 37.5, y - 0.5, lm + 39.5, y - 3.5);
     }
-    doc.text('LAYAK DIBEBASKAN BPHTB', lm + 45, y); y += 7;
+    doc.text('LAYAK DIBEBASKAN BPHTB', lm + 45, y); y += 6;
 
     // Box 3: Tidak Layak
     doc.rect(lm + 35, y - 4, 5, 5);
     if (isTidakLayak) {
         doc.line(lm + 36, y - 1.5, lm + 37.5, y - 0.5); doc.line(lm + 37.5, y - 0.5, lm + 39.5, y - 3.5);
     }
-    doc.text('TIDAK LAYAK (Ditolak/Pajak Normal)', lm + 45, y); y += 10;
+    doc.text('TIDAK LAYAK (Ditolak/Pajak Normal)', lm + 45, y); y += 8;
 
     // ── PENUTUP ───────────────────────────────────────────────────
     setFont('normal', 9);
     const penutup = 'Demikian Berita Acara ini dibuat dengan sebenarnya untuk digunakan sebagai dasar penetapan bebas BPHTB untuk Masyarakat Berpenghasilan Rendah (MBR).';
     const pLines  = doc.splitTextToSize(penutup, cw);
     doc.text(pLines, lm, y);
-    y += pLines.length * 5 + 7;
+    y += pLines.length * 4.5 + 5;
 
     // ── TANDA TANGAN ──────────────────────────────────────────────
+    if (y > 255) {
+        doc.addPage();
+        y = 20;
+    }
+
     setFont('bold', 10);
-    doc.text('Tim Verifikasi Berkas / Lapangan:', lm, y); y += 7;
+    doc.text('Tim Verifikasi Berkas / Lapangan:', lm, y); y += 6;
 
     const v1 = (d.nama_verifikator_berkas    || '................................').toUpperCase();
     const v2 = (d.nama_verifikator_lapangan  || '................................').toUpperCase();
 
     setFont('normal', 10);
-    doc.text('1.  ' + v1, lm + 5, y);
     
-    if (ttdAdminDataUrl && (v1.includes('ADMINISTRATOR') || v1.includes('ADMIN UTAMA') || v1.includes('ADYAR NAWAM FAHMI'))) {
-        doc.addImage(ttdAdminDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    } else if (ttdWawanDataUrl && v1.includes('WAWAN AFWAN')) {
-        doc.addImage(ttdWawanDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    } else if (ttdThomasDataUrl && v1.includes('THOMAS HASANUDDIN')) {
-        doc.addImage(ttdThomasDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    } else if (ttdWahyuDataUrl && (v1.includes('MUHAMMAD WAHYU') || v1 === 'WAHYU')) {
-        doc.addImage(ttdWahyuDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    }
+    // Nama Verifikator (Kiri & Kanan)
+    const v1Text = doc.splitTextToSize(v1, 80)[0];
+    const v2Text = doc.splitTextToSize(v2, 80)[0];
+    doc.text('1.  ' + v1Text, lm + 5, y);
+    doc.text('2.  ' + v2Text, pw / 2 + 5, y);
     
-    doc.text('(Tanda Tangan:', lm + 100, y);
-    doc.line(lm + 131, y, rm, y);
-    doc.text(')', rm + 1, y);
-    y += 14;
+    y += 16; // Jarak untuk gambar tanda tangan
 
-    doc.text('2.  ' + v2, lm + 5, y);
-    
-    if (ttdAdminDataUrl && (v2.includes('ADMINISTRATOR') || v2.includes('ADMIN UTAMA') || v2.includes('ADYAR NAWAM FAHMI'))) {
-        doc.addImage(ttdAdminDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    } else if (ttdWawanDataUrl && v2.includes('WAWAN AFWAN')) {
-        doc.addImage(ttdWawanDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    } else if (ttdThomasDataUrl && v2.includes('THOMAS HASANUDDIN')) {
-        doc.addImage(ttdThomasDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    } else if (ttdWahyuDataUrl && (v2.includes('MUHAMMAD WAHYU') || v2 === 'WAHYU')) {
-        doc.addImage(ttdWahyuDataUrl, 'PNG', lm + 131, y - 8, 20, 10);
-    }
+    // Garis Tanda Tangan (Kiri & Kanan)
+    doc.text('(Tanda Tangan:', lm + 5, y);
+    doc.line(lm + 32, y, lm + 75, y);
+    doc.text(')', lm + 76, y);
 
-    doc.text('(Tanda Tangan:', lm + 100, y);
-    doc.line(lm + 131, y, rm, y);
-    doc.text(')', rm + 1, y);
+    doc.text('(Tanda Tangan:', pw / 2 + 5, y);
+    doc.line(pw / 2 + 32, y, pw / 2 + 75, y);
+    doc.text(')', pw / 2 + 76, y);
+
+    // Helper draw signature
+    const drawSignature = (name, dx, dy) => {
+        if (ttdAdminDataUrl && (name.includes('ADMINISTRATOR') || name.includes('ADMIN UTAMA') || name.includes('ADYAR NAWAM FAHMI'))) {
+            doc.addImage(ttdAdminDataUrl, 'PNG', dx, dy, 25, 12);
+        } else if (ttdWawanDataUrl && name.includes('WAWAN AFWAN')) {
+            doc.addImage(ttdWawanDataUrl, 'PNG', dx, dy, 25, 12);
+        } else if (ttdThomasDataUrl && name.includes('THOMAS HASANUDDIN')) {
+            doc.addImage(ttdThomasDataUrl, 'PNG', dx, dy, 25, 12);
+        } else if (ttdWahyuDataUrl && (name.includes('MUHAMMAD WAHYU') || name === 'WAHYU')) {
+            doc.addImage(ttdWahyuDataUrl, 'PNG', dx, dy, 25, 12);
+        }
+    };
+
+    drawSignature(v1, lm + 40, y - 10);
+    drawSignature(v2, pw / 2 + 40, y - 10);
 
     const safeName = d.nama ? d.nama.replace(/[^a-zA-Z0-9\s]/g, '') : 'MBR';
     doc.save(safeName + '.pdf');

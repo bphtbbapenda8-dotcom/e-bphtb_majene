@@ -17,7 +17,7 @@ function mbrFormApp() {
             penghasilan: 0,
 
             // New fields from the user's MBR HTML
-            tanggal_register: '',
+            tanggal_register: new Date().toISOString().split('T')[0],
             tempat_lahir: '',
             tanggal_lahir: '',
             nomor_perjanjian_kredit: '',
@@ -75,7 +75,21 @@ function mbrFormApp() {
 
         // ── Lifecycle ────────────────────────────────────────────────
         async init() {
-            this.listNotaris = LIST_NOTARIS;
+            this.listNotaris = [...LIST_NOTARIS];
+            
+            const userStr = sessionStorage.getItem('ebphtb_user_data');
+            if (userStr) {
+                const userData = JSON.parse(userStr);
+                if (userData.role === 'notaris') {
+                    if (!this.listNotaris.includes(userData.nama)) {
+                        this.listNotaris.push(userData.nama);
+                    }
+                    this.form.notaris = userData.nama;
+                } else if (userData.role === 'mandiri') {
+                    this.form.notaris = 'mandiri/perseorangan';
+                }
+            }
+
             await this.loadPerumahan();
             this.$nextTick(() => {
                 initNopMask('nop_mbr_input');

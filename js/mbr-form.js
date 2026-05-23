@@ -33,8 +33,17 @@ function mbrFormApp() {
         dispTransaksi: '', dispPenghasilan: '',
 
         // File info (Added perjanjianKredit)
-        files: { ktp: null, sertifikat: null, pendukung: null, suratMbr: null, perjanjianKredit: null },
-        fileObjects: { ktp: null, sertifikat: null, pendukung: null, suratMbr: null, perjanjianKredit: null },
+        files: {
+            ktp: null, kk: null, sppt: null,
+            stpd: null, bukti_bayar: null,
+            perjanjian_kredit: null, sptjm: null,
+            sertifikat: null
+        },
+
+        // NIK Validation State
+        isNikValid: false,
+        isCheckingNik: false,
+        nikErrorMsg: '',
 
         // Existing file URLs (used in edit mode)
         existingFiles: { url_ktp: '', url_sertifikat: '', url_pendukung: '', url_surat_mbr: '', url_perjanjian_kredit: '' },
@@ -68,6 +77,7 @@ function mbrFormApp() {
             if (editId) {
                 this.isEditMode = true;
                 this.editId = editId;
+                this.isNikValid = true; // Automatically valid if editing
                 await this.loadEditData(editId);
             }
         },
@@ -197,9 +207,42 @@ function mbrFormApp() {
             }
         },
 
-        onNikInput(e) {
+        async onNikInput(e) {
             this.form.nik = onlyNum(e.target.value).slice(0, 16);
             e.target.value = this.form.nik;
+            
+            // Reset state
+            this.isNikValid = false;
+            this.nikErrorMsg = '';
+
+            if (this.form.nik.length === 16) {
+                this.isCheckingNik = true;
+                try {
+                    let query = db.from('pengajuan_mbr').select('no_pengajuan').eq('nik', this.form.nik);
+                    if (this.isEditMode && this.editId) {
+                        query = query.neq('no_pengajuan', this.editId);
+                    }
+                    const { data, error } = await query.limit(1);
+                    if (error) throw error;
+                    
+                    if (data && data.length > 0) {
+                        this.isNikValid = false;
+                        this.nikErrorMsg = 'NIK sudah digunakan pada pengajuan lain.';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'NIK Ditolak',
+                            text: 'NIK ini sudah terdaftar dalam sistem E-BPHTB. Seluruh kolom isian dibekukan sampai NIK yang valid dimasukkan.',
+                            confirmButtonColor: '#16a34a'
+                        });
+                    } else {
+                        this.isNikValid = true;
+                    }
+                } catch (err) {
+                    console.error('Check NIK error:', err);
+                } finally {
+                    this.isCheckingNik = false;
+                }
+            }
         },
 
         onWaInput(e) {

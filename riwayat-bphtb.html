@@ -133,7 +133,7 @@
                                     <td>
                                         <span class="badge" :class="statusBadge(item.alur_berkas)" x-text="item.alur_berkas || 'Menunggu'"></span>
                                     </td>
-                                    <td class="td-currency" x-text="item.pajak ? fmtCurr(item.pajak) : '-'"></td>
+                                    <td class="td-currency" x-text="item.pajak ? fmtCurr(item.pajak) : (item.pajak_ditetapkan ? fmtCurr(item.pajak_ditetapkan) : '-')"></td>
                                     <td>
                                         <template x-if="item.url_berkas_stpd">
                                             <span class="badge badge-red" style="font-size:.65rem" x-text="'STPD ' + fmtCurr(item.stpd_denda)"></span>
@@ -324,7 +324,7 @@
                             <div class="modal-section">
                                 <div class="modal-section-title">Data Objek Pajak</div>
                                 <div class="modal-grid-2">
-                                    <div class="modal-field modal-col-2"><div class="modal-field-label">NOP PBB</div><div class="modal-field-value mono" x-text="selectedBerkas?.nop || '-'"></div></div>
+                                    <div class="modal-field modal-col-2"><div class="modal-field-label">NOP PBB</div><div class="modal-field-value mono" x-text="String(selectedBerkas?.nop || '-').replace(/[\.\-]/g, '')"></div></div>
                                     <div class="modal-field"><div class="modal-field-label">Kecamatan</div><div class="modal-field-value" x-text="selectedBerkas?.kecamatan || '-'"></div></div>
                                     <div class="modal-field"><div class="modal-field-label">Kelurahan</div><div class="modal-field-value" x-text="selectedBerkas?.kelurahan || '-'"></div></div>
                                     <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat Objek</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.alamat_op || '-'"></div></div>

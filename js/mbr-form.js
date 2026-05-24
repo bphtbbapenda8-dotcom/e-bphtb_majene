@@ -36,7 +36,9 @@ function mbrFormApp() {
         files: {
             ktp: null,
             sertifikat: null,
-            pendukung: null,
+            sppt: null,
+            ajb: null,
+            surat_belum_menikah: null,
             suratMbr: null,
             perjanjianKredit: null
         },
@@ -44,7 +46,9 @@ function mbrFormApp() {
         fileObjects: {
             ktp: null,
             sertifikat: null,
-            pendukung: null,
+            sppt: null,
+            ajb: null,
+            surat_belum_menikah: null,
             suratMbr: null,
             perjanjianKredit: null
         },
@@ -55,7 +59,7 @@ function mbrFormApp() {
         nikErrorMsg: '',
 
         // Existing file URLs (used in edit mode)
-        existingFiles: { url_ktp: '', url_sertifikat: '', url_pendukung: '', url_surat_mbr: '', url_perjanjian_kredit: '' },
+        existingFiles: { url_ktp: '', url_sertifikat: '', url_sppt: '', url_ajb: '', url_surat_belum_menikah: '', url_surat_mbr: '', url_perjanjian_kredit: '' },
 
         // Dropdown data
         listKelurahan: [],
@@ -177,7 +181,9 @@ function mbrFormApp() {
                 // Set existing files
                 this.existingFiles.url_ktp = data.url_ktp || '';
                 this.existingFiles.url_sertifikat = data.url_sertifikat || '';
-                this.existingFiles.url_pendukung = data.url_pendukung || '';
+                this.existingFiles.url_sppt = data.url_sppt || '';
+                this.existingFiles.url_ajb = data.url_ajb || '';
+                this.existingFiles.url_surat_belum_menikah = data.url_surat_belum_menikah || '';
                 this.existingFiles.url_surat_mbr = data.url_surat_mbr || '';
                 this.existingFiles.url_perjanjian_kredit = data.url_perjanjian_kredit || '';
 
@@ -305,16 +311,18 @@ function mbrFormApp() {
                 return;
             }
             if (!this.isEditMode) {
-                if (!this.files?.ktp || !this.files?.sertifikat || !this.files?.suratMbr || !this.files?.perjanjianKredit) {
-                    Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap unggah KTP/KK, Sertifikat Tanah, Surat Keterangan MBR, dan Surat Perjanjian Kredit.', confirmButtonColor: '#16a34a' });
+                if (!this.files?.ktp || !this.files?.sertifikat || !this.files?.sppt || !this.files?.ajb || !this.files?.suratMbr || !this.files?.perjanjianKredit) {
+                    Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap lengkapi semua dokumen yang berstatus wajib (*).', confirmButtonColor: '#16a34a' });
                     return;
                 }
             } else {
                 if ((!this.files?.ktp && !this.existingFiles?.url_ktp) || 
                     (!this.files?.sertifikat && !this.existingFiles?.url_sertifikat) || 
+                    (!this.files?.sppt && !this.existingFiles?.url_sppt) ||
+                    (!this.files?.ajb && !this.existingFiles?.url_ajb) ||
                     (!this.files?.suratMbr && !this.existingFiles?.url_surat_mbr) ||
                     (!this.files?.perjanjianKredit && !this.existingFiles?.url_perjanjian_kredit)) {
-                    Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap pastikan KTP/KK, Sertifikat Tanah, Surat Keterangan MBR, dan Surat Perjanjian Kredit tersedia.', confirmButtonColor: '#16a34a' });
+                    Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap pastikan semua dokumen wajib (*) tersedia.', confirmButtonColor: '#16a34a' });
                     return;
                 }
             }
@@ -332,12 +340,14 @@ function mbrFormApp() {
             try {
                 let ktpUrl = this.existingFiles.url_ktp;
                 let sertifikatUrl = this.existingFiles.url_sertifikat;
-                let pendukungUrl = this.existingFiles.url_pendukung;
+                let spptUrl = this.existingFiles.url_sppt;
+                let ajbUrl = this.existingFiles.url_ajb;
+                let suratBelumMenikahUrl = this.existingFiles.url_surat_belum_menikah;
                 let suratMbrUrl = this.existingFiles.url_surat_mbr;
                 let perjanjianKreditUrl = this.existingFiles.url_perjanjian_kredit;
 
                 // Check if any new files are being uploaded
-                if (this.fileObjects?.ktp || this.fileObjects?.sertifikat || this.fileObjects?.pendukung || this.fileObjects?.suratMbr || this.fileObjects?.perjanjianKredit) {
+                if (this.fileObjects?.ktp || this.fileObjects?.sertifikat || this.fileObjects?.sppt || this.fileObjects?.ajb || this.fileObjects?.surat_belum_menikah || this.fileObjects?.suratMbr || this.fileObjects?.perjanjianKredit) {
                     Swal.fire({
                         title: 'Mengunggah Berkas...',
                         text: 'Menyimpan file ke Google Drive (1/2)',
@@ -350,7 +360,9 @@ function mbrFormApp() {
                     formData.append('nik', this.form.nik);
                     if (this.fileObjects?.ktp)              formData.append('ktp_file',              await toBase64(this.fileObjects.ktp));
                     if (this.fileObjects?.sertifikat)       formData.append('sertifikat_file',       await toBase64(this.fileObjects.sertifikat));
-                    if (this.fileObjects?.pendukung)        formData.append('pendukung_file',        await toBase64(this.fileObjects.pendukung));
+                    if (this.fileObjects?.sppt)             formData.append('sppt_file',             await toBase64(this.fileObjects.sppt));
+                    if (this.fileObjects?.ajb)              formData.append('ajb_file',              await toBase64(this.fileObjects.ajb));
+                    if (this.fileObjects?.surat_belum_menikah) formData.append('surat_belum_menikah_file', await toBase64(this.fileObjects.surat_belum_menikah));
                     if (this.fileObjects?.suratMbr)         formData.append('surat_mbr_file',         await toBase64(this.fileObjects.suratMbr));
                     if (this.fileObjects?.perjanjianKredit) formData.append('perjanjian_kredit_file', await toBase64(this.fileObjects.perjanjianKredit));
 
@@ -360,7 +372,9 @@ function mbrFormApp() {
 
                     if (scriptResult.url_ktp)               ktpUrl = scriptResult.url_ktp;
                     if (scriptResult.url_sertifikat)        sertifikatUrl = scriptResult.url_sertifikat;
-                    if (scriptResult.url_pendukung)         pendukungUrl = scriptResult.url_pendukung;
+                    if (scriptResult.url_sppt)              spptUrl = scriptResult.url_sppt;
+                    if (scriptResult.url_ajb)               ajbUrl = scriptResult.url_ajb;
+                    if (scriptResult.url_surat_belum_menikah) suratBelumMenikahUrl = scriptResult.url_surat_belum_menikah;
                     if (scriptResult.url_surat_mbr)         suratMbrUrl = scriptResult.url_surat_mbr;
                     if (scriptResult.url_perjanjian_kredit) perjanjianKreditUrl = scriptResult.url_perjanjian_kredit;
                 }
@@ -391,7 +405,9 @@ function mbrFormApp() {
                     penghasilan:     this.form.penghasilan,
                     url_ktp:         ktpUrl,
                     url_sertifikat:  sertifikatUrl,
-                    url_pendukung:   pendukungUrl,
+                    url_sppt:        spptUrl,
+                    url_ajb:         ajbUrl,
+                    url_surat_belum_menikah: suratBelumMenikahUrl,
                     url_surat_mbr:   suratMbrUrl,
                     url_perjanjian_kredit: perjanjianKreditUrl,
                     alur_berkas:     'Berkas sedang diverifikasi', // Reset status

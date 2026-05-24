@@ -21,7 +21,7 @@ function verifikasiApp(mode) {
             penghasilan: '',
             kelengkapan: {
                 ktp: false, kk: false, sertifikat: false,
-                ajb: false, spk: false, sppt: false, ket_rumah: false
+                ajb: false, spk: false, sppt: false, ket_rumah: false, surat_belum_menikah: false
             },
             harga: 0,
             hak_pertama: false
@@ -133,7 +133,7 @@ function verifikasiApp(mode) {
                 this.berkasForm = {
                     status_perkawinan: '',
                     penghasilan: '',
-                    kelengkapan: { ktp: false, kk: false, sertifikat: false, ajb: false, spk: false, sppt: false, ket_rumah: false },
+                    kelengkapan: { ktp: false, kk: false, sertifikat: false, ajb: false, spk: false, sppt: false, ket_rumah: false, surat_belum_menikah: false },
                     harga: item.nilai_transaksi || 0,
                     hak_pertama: false
                 };
@@ -174,7 +174,7 @@ function verifikasiApp(mode) {
                 if (!bf.status_perkawinan || !bf.penghasilan || !bf.hak_pertama || 
                     !bf.kelengkapan.ktp || !bf.kelengkapan.kk || !bf.kelengkapan.sertifikat || 
                     !bf.kelengkapan.ajb || !bf.kelengkapan.spk || !bf.kelengkapan.sppt || 
-                    !bf.kelengkapan.ket_rumah) {
+                    !bf.kelengkapan.ket_rumah || (bf.status_perkawinan === 'belum_menikah' && !bf.kelengkapan.surat_belum_menikah)) {
                     
                     statusValue = 'ditolak';
                     catatan = 'Ditolak karena berkas tidak lengkap atau tidak memenuhi syarat (Otomatis).';

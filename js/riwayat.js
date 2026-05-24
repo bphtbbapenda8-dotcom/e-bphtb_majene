@@ -124,7 +124,10 @@ function riwayatApp(type) {
                     const { error } = await db.from('pengajuan_bphtb')
                         .update({ 
                             status_persetujuan_wp: 'disetujui_wp',
-                            alur_berkas: 'Berkas sedang diverifikasi' // Returns to verifier queue
+                            verifikasi_lapangan_status: 'disetujui',
+                            verifikasi_berkas_status: 'disetujui',
+                            status: 'disetujui',
+                            alur_berkas: 'Berkas diterima'
                         })
                         .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
 

@@ -91,6 +91,7 @@
                                 <th>No</th>
                                 <th>Jenis</th>
                                 <th>No Pengajuan</th>
+                                <th>Jenis Perolehan</th>
                                 <th>Nama Wajib Pajak</th>
                                 <th>Nama Notaris</th>
                                 <th>Status Verifikasi Lapangan</th>
@@ -105,6 +106,7 @@
                                         <span class="badge" :class="item.isMbr ? 'badge-purple' : 'badge-blue'" x-text="item.isMbr ? 'MBR' : 'Reguler'"></span>
                                     </td>
                                     <td style="font-weight:700;font-family:monospace;color:#475569" x-text="item.no_pengajuan"></td>
+                                    <td style="text-transform:capitalize;font-size:0.8rem;color:#334155" x-text="(item.jenis_perolehan || '-').replace(/_/g, ' ')"></td>
                                     <td>
                                         <p class="td-name-main" x-text="item.nama"></p>
                                         <p class="td-name-sub" x-text="item.nik"></p>
@@ -113,9 +115,19 @@
                                         <p style="font-size:0.75rem; color:#475569; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" x-text="item.notaris || '-'"></p>
                                     </td>
                                     <td>
-                                        <span class="badge badge-yellow" x-show="!item.verifikasi_lapangan_status || item.verifikasi_lapangan_status === 'menunggu'">Menunggu</span>
-                                        <span class="badge badge-green" x-show="item.verifikasi_lapangan_status === 'disetujui'">Selesai</span>
-                                        <span class="badge badge-red" x-show="item.verifikasi_lapangan_status === 'ditolak'">Ditolak</span>
+                                        <template x-if="item.status_persetujuan_wp === 'menunggu_wp'">
+                                            <span class="badge badge-yellow">Menunggu Tanggapan WP</span>
+                                        </template>
+                                        <template x-if="item.status_persetujuan_wp === 'dikomentari_wp'">
+                                            <span class="badge badge-blue">Tanggapan WP</span>
+                                        </template>
+                                        <template x-if="item.status_persetujuan_wp !== 'menunggu_wp' && item.status_persetujuan_wp !== 'dikomentari_wp'">
+                                            <span>
+                                                <span class="badge badge-yellow" x-show="!item.verifikasi_lapangan_status || item.verifikasi_lapangan_status === 'menunggu'">Menunggu</span>
+                                                <span class="badge badge-green" x-show="item.verifikasi_lapangan_status === 'disetujui'">Selesai</span>
+                                                <span class="badge badge-red" x-show="item.verifikasi_lapangan_status === 'ditolak'">Ditolak</span>
+                                            </span>
+                                        </template>
                                     </td>
                                     <td>
                                         <button @click="openModal(item)" class="btn-action btn-action-blue">Periksa Lokasi</button>
@@ -244,7 +256,14 @@
                                                         </div>
                                                     </template>
 
-                                                    <template x-if="selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp'">
+                                                    <template x-if="selectedBerkas?.status_persetujuan_wp === 'menunggu_wp'">
+                                                        <div style="background:#fef3c7; padding:1rem; border-left:4px solid #f59e0b; margin-bottom:1rem;">
+                                                            <div style="font-size:0.75rem; color:#b45309; font-weight:bold; margin-bottom:0.25rem;">Status Persetujuan:</div>
+                                                            <div style="font-size:0.875rem; color:#92400e;">Menunggu tanggapan Wajib Pajak terkait nominal pajak sebesar <b x-text="fmtCurr(selectedBerkas.pajak_ditetapkan)"></b>.</div>
+                                                        </div>
+                                                    </template>
+
+                                                    <template x-if="selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp' && selectedBerkas?.status_persetujuan_wp !== 'menunggu_wp'">
                                                         <div>
                                                             <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">Input Nominal Pajak Ditetapkan</label>
                                                             <input type="text" x-model="lapanganForm.pajak_ditetapkan_disp" @input="onRpInput($event, 'pajak_ditetapkan')" class="input-field" placeholder="Rp 0">
@@ -255,7 +274,9 @@
                                             </template>
 
                                             <div class="flex gap-3 justify-end">
-                                                <button @click="tolakBerkas()" class="btn-action btn-action-red" style="padding:.5rem 1rem">Tolak (Lokasi Tidak Sesuai)</button>
+                                                <template x-if="selectedBerkas?.status_persetujuan_wp !== 'menunggu_wp'">
+                                                    <button @click="tolakBerkas()" class="btn-action btn-action-red" style="padding:.5rem 1rem">Tolak (Lokasi Tidak Sesuai)</button>
+                                                </template>
                                                 
                                                 <!-- Jika Jual Beli ATAU Non-Jual Beli tapi sudah disetujui WP, tampilkan tombol Selesai Verifikasi Lapangan -->
                                                 <template x-if="selectedBerkas?.jenis_perolehan === 'jual_beli' || selectedBerkas?.status_persetujuan_wp === 'disetujui_wp'">
@@ -263,7 +284,7 @@
                                                 </template>
                                                 
                                                 <!-- Jika Non-Jual Beli dan belum disetujui WP -->
-                                                <template x-if="selectedBerkas?.jenis_perolehan !== 'jual_beli' && selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp'">
+                                                <template x-if="selectedBerkas?.jenis_perolehan !== 'jual_beli' && selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp' && selectedBerkas?.status_persetujuan_wp !== 'menunggu_wp'">
                                                     <button @click="kirimPajakKeWp()" class="btn-action btn-action-blue" style="padding:.5rem 1rem">Tetapkan Pajak & Kirim ke WP</button>
                                                 </template>
                                             </div>

@@ -187,7 +187,7 @@
                                     <div class="modal-section">
                                         <div class="modal-section-title">Data Objek Pajak</div>
                                         <div class="modal-grid-2">
-                                            <div class="modal-field modal-col-2"><div class="modal-field-label">NOP PBB</div><div class="modal-field-value mono" x-text="selectedBerkas?.nop || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">NOP PBB</div><div class="modal-field-value mono" x-text="String(selectedBerkas?.nop || '-').replace(/[\.\-]/g, '')"></div></div>
                                             <div class="modal-field"><div class="modal-field-label">Kecamatan</div><div class="modal-field-value" x-text="selectedBerkas?.kecamatan || '-'"></div></div>
                                             <div class="modal-field"><div class="modal-field-label">Kelurahan</div><div class="modal-field-value" x-text="selectedBerkas?.kelurahan || '-'"></div></div>
                                             <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat Objek</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.alamat_op || '-'"></div></div>

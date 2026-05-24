@@ -38,10 +38,31 @@ function bphtbFormApp() {
         loading: false,
         isEditMode: false,
         editId: '',
+        isNotaris: false,
 
         // ── Lifecycle ────────────────────────────────────────────────
         async init() {
-            this.listNotaris = LIST_NOTARIS;
+            this.listNotaris = [...LIST_NOTARIS];
+            
+            // Auto-fill notaris based on logged-in user
+            const userStr = sessionStorage.getItem('ebphtb_user_data');
+            if (userStr) {
+                const userData = JSON.parse(userStr);
+                if (userData.role === 'notaris') {
+                    if (!this.listNotaris.includes(userData.nama)) {
+                        this.listNotaris.push(userData.nama);
+                    }
+                    setTimeout(() => { this.form.notaris = userData.nama; }, 50);
+                    this.isNotaris = true;
+                } else if (userData.role === 'mandiri') {
+                    if (!this.listNotaris.includes('mandiri/perseorangan')) {
+                        this.listNotaris.push('mandiri/perseorangan');
+                    }
+                    setTimeout(() => { this.form.notaris = 'mandiri/perseorangan'; }, 50);
+                    this.isNotaris = true;
+                }
+            }
+
             this.$nextTick(() => {
                 initMap('map', (lat, lng) => {
                     this.form.latitude = lat;

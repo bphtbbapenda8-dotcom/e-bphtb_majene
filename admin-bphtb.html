@@ -204,7 +204,15 @@
                                         <div class="modal-grid-2">
                                             <div class="modal-field"><div class="modal-field-label">Total NJOP</div><div class="modal-field-value dark" x-text="fmtCurr(selectedBerkas?.total_njop || 0)"></div></div>
                                             <div class="modal-field"><div class="modal-field-label">Nilai Transaksi</div><div class="modal-field-value dark" x-text="fmtCurr(selectedBerkas?.nilai_transaksi || 0)"></div></div>
-                                            <div class="modal-field"><div class="modal-field-label">Jenis Perolehan</div><div class="modal-field-value accent" style="text-transform:uppercase" x-text="selectedBerkas?.jenis_perolehan || '-'"></div></div>
+                                            
+                                            <template x-if="selectedBerkas?.jenis_perolehan !== 'jual_beli'">
+                                                <div class="modal-field" style="grid-column:span 2; background:#f0fdf4; border:1px solid #bbf7d0; padding:.5rem; border-radius:.5rem">
+                                                    <div class="modal-field-label" style="color:#166534">Nilai Pajak Disetujui (Non Jual-Beli)</div>
+                                                    <div class="modal-field-value dark" style="color:#15803d; font-weight:900" x-text="fmtCurr(selectedBerkas?.pajak_ditetapkan || 0)"></div>
+                                                </div>
+                                            </template>
+
+                                            <div class="modal-field"><div class="modal-field-label">Jenis Perolehan</div><div class="modal-field-value accent" style="text-transform:capitalize" x-text="String(selectedBerkas?.jenis_perolehan || '-').replace(/_/g, ' ')"></div></div>
                                             <div class="modal-field"><div class="modal-field-label">Notaris / PPAT</div><div class="modal-field-value dark" style="font-size:.8rem" x-text="selectedBerkas?.notaris || '-'"></div></div>
                                         </div>
                                     </div>

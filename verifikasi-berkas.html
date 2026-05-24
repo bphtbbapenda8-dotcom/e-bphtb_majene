@@ -91,6 +91,7 @@
                                 <th>No</th>
                                 <th>Jenis</th>
                                 <th>No Pengajuan</th>
+                                <th>Jenis Perolehan</th>
                                 <th>Nama WP</th>
                                 <th>Nama Notaris</th>
                                 <th>Status Verifikasi Berkas</th>
@@ -105,6 +106,7 @@
                                         <span class="badge" :class="item.isMbr ? 'badge-purple' : 'badge-blue'" x-text="item.isMbr ? 'MBR' : 'Reguler'"></span>
                                     </td>
                                     <td style="font-weight:700;font-family:monospace;color:#475569" x-text="item.no_pengajuan"></td>
+                                    <td style="text-transform:capitalize;font-size:0.8rem;color:#334155" x-text="(item.jenis_perolehan || '-').replace(/_/g, ' ')"></td>
                                     <td>
                                         <p class="td-name-main" x-text="item.nama"></p>
                                         <p class="td-name-sub" x-text="item.nik"></p>

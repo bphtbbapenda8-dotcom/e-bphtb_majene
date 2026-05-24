@@ -59,7 +59,6 @@ function bphtbFormApp() {
                         this.listNotaris.push('mandiri/perseorangan');
                     }
                     setTimeout(() => { this.form.notaris = 'mandiri/perseorangan'; }, 50);
-                    this.isNotaris = true;
                 }
             }
 

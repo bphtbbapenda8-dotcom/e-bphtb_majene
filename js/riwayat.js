@@ -126,8 +126,8 @@ function riwayatApp(type) {
                             status_persetujuan_wp: 'disetujui_wp',
                             verifikasi_lapangan_status: 'disetujui',
                             verifikasi_berkas_status: 'disetujui',
-                            status: 'disetujui',
-                            alur_berkas: 'Berkas diterima'
+                            alur_berkas: 'Pembayaran',
+                            pajak: this.selectedBerkas.pajak_ditetapkan
                         })
                         .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
 

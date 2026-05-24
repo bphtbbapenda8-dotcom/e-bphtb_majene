@@ -70,6 +70,7 @@ function mbrFormApp() {
         loading: false,
         isEditMode: false,
         editId: '',
+        isNotaris: false,
 
         // MBR constants
         MAX_NILAI: 600000000,
@@ -88,9 +89,14 @@ function mbrFormApp() {
                     if (!this.listNotaris.includes(userData.nama)) {
                         this.listNotaris.push(userData.nama);
                     }
-                    this.form.notaris = userData.nama;
+                    setTimeout(() => { this.form.notaris = userData.nama; }, 50);
+                    this.isNotaris = true;
                 } else if (userData.role === 'mandiri') {
-                    this.form.notaris = 'mandiri/perseorangan';
+                    if (!this.listNotaris.includes('mandiri/perseorangan')) {
+                        this.listNotaris.push('mandiri/perseorangan');
+                    }
+                    setTimeout(() => { this.form.notaris = 'mandiri/perseorangan'; }, 50);
+                    this.isNotaris = true;
                 }
             }
 

@@ -277,9 +277,11 @@
                             <template x-for="[key, label] in [
                                 ['ktp','1. KTP / KK Wajib Pajak *'], 
                                 ['sertifikat','2. Sertifikat Tanah (SHGB) *'], 
-                                ['pendukung','3. SPPT PBB / AJB (Pendukung)'], 
-                                ['suratMbr','4. Surat Keterangan MBR dari Kelurahan *'],
-                                ['perjanjianKredit','5. Surat Perjanjian Kredit *']
+                                ['sppt','3. SPPT *'], 
+                                ['ajb','4. AJB/Kwitansi pembelian *'],
+                                ['surat_belum_menikah','5. Surat ket. belum menikah (bagi yang belum menikah)'],
+                                ['suratMbr','6. Surat ket tidak memiliki rumah dari kelurahan *'],
+                                ['perjanjianKredit','7. Surat Perjanjian Kredit *']
                             ]" :key="key">
                                 <div class="border border-dashed border-slate-300 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition-colors">
                                     <span class="block text-xs font-semibold text-slate-600 mb-2" x-text="label"></span>

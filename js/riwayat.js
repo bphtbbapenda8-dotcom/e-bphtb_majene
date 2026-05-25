@@ -9,6 +9,7 @@ function riwayatApp(type) {
         type,
         data: [],
         loading: false,
+        filterNama: '',
         filterNotaris: '',
         filterJenis: '',
         filterStatus: '',
@@ -66,6 +67,7 @@ function riwayatApp(type) {
                     }
                 }
 
+                if (this.filterNama) q = q.ilike('nama', `%${this.filterNama}%`);
                 if (this.filterNotaris) q = q.eq('notaris', this.filterNotaris);
                 if (this.filterJenis && !this.isMbr) q = q.eq('jenis_perolehan', this.filterJenis);
                 if (this.filterStatus) q = q.eq('alur_berkas', this.filterStatus);
@@ -89,6 +91,7 @@ function riwayatApp(type) {
         },
 
         resetFilter() {
+            this.filterNama    = '';
             this.filterNotaris = '';
             this.filterJenis   = '';
             this.filterStatus  = '';

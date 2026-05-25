@@ -50,6 +50,10 @@
             <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-row">
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Cari Nama WP</label>
+                        <input type="text" x-model="filterNama" @keyup.enter="fetchData()" placeholder="Masukkan nama..." class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                    </div>
                     <div class="filter-field" x-show="userRole === 'admin'">
                         <label class="field-label" style="font-size:.65rem">Filter Notaris</label>
                         <select x-model="filterNotaris" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">

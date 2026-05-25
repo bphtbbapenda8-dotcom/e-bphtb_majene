@@ -125,7 +125,7 @@ function adminApp(type) {
             this.adminForm.catatan_penolakan = item.catatan_penolakan || '';
 
             // Populate STPD states
-            this.adminForm.isStpdActive = !!item.url_berkas_stpd;
+            this.adminForm.isStpdActive = (item.stpd_denda > 0) || !!item.url_berkas_stpd || !!item.stpd_status;
             this.adminForm.stpd_denda = item.stpd_denda ? item.stpd_denda : 100000;
             this.adminForm.dispStpdDenda = fmtRpDisplay(this.adminForm.stpd_denda);
             this.adminForm.stpd_status = item.stpd_status || '';
@@ -217,10 +217,6 @@ function adminApp(type) {
                     throw new Error('Anda wajib mengunggah file Resi Pembayaran BAPENDA.');
                 }
 
-                // Validasi input wajib untuk Berkas STPD (saat pertama kali diterbitkan)
-                if (this.adminForm.isStpdActive && !urlBerkasStpd && !this.stpdFileObj) {
-                    throw new Error('Anda wajib mengunggah berkas STPD (PDF) saat pertama kali menerbitkan STPD.');
-                }
 
                 // 1. If status is Payment, check if a resi must be uploaded
                 if (status === 'Pembayaran' && this.resiFileObj) {
@@ -246,13 +242,12 @@ function adminApp(type) {
                     linkResi = scriptResult.url_resi;
                 }
 
-                // 2. STPD file uploads
+                // 2. STPD Resi uploads
                 if (this.adminForm.isStpdActive) {
-                    // Check if new STPD files are selected
-                    if (this.stpdFileObj || this.stpdResiFileObj) {
+                    if (this.stpdResiFileObj) {
                         Swal.fire({
-                            title: 'Mengunggah Berkas STPD...',
-                            text: 'Menyimpan berkas STPD ke Google Drive',
+                            title: 'Mengunggah Resi STPD...',
+                            text: 'Menyimpan resi STPD ke Google Drive',
                             allowOutsideClick: false,
                             didOpen: () => Swal.showLoading()
                         });
@@ -260,26 +255,16 @@ function adminApp(type) {
                         const formData = new FormData();
                         formData.append('aksi', 'upload_file_saja');
                         formData.append('nik', this.selectedBerkas.nik);
-                        if (this.stpdFileObj)     formData.append('berkas_stpd_file', await toBase64(this.stpdFileObj));
-                        if (this.stpdResiFileObj) formData.append('resi_stpd_file',   await toBase64(this.stpdResiFileObj));
+                        formData.append('resi_stpd_file', await toBase64(this.stpdResiFileObj));
 
                         const scriptRes = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                         const scriptResult = await scriptRes.json();
-                        if (scriptResult.result !== 'success') throw new Error('Gagal mengupload berkas STPD: ' + (scriptResult.error || 'Unknown'));
-
-                        if (this.stpdFileObj) {
-                            if (!scriptResult.url_berkas_stpd) {
-                                throw new Error('Gagal mengupload berkas STPD. URL berkas tidak dikembalikan oleh server. Pastikan Anda telah memperbarui kode Google Apps Script (Code.gs) Anda.');
-                            }
-                            urlBerkasStpd = scriptResult.url_berkas_stpd;
-                        }
+                        if (scriptResult.result !== 'success') throw new Error('Gagal mengupload resi STPD: ' + (scriptResult.error || 'Unknown'));
                         
-                        if (this.stpdResiFileObj) {
-                            if (!scriptResult.url_resi_stpd) {
-                                throw new Error('Gagal mengupload resi STPD. URL resi tidak dikembalikan oleh server. Pastikan Anda telah memperbarui kode Google Apps Script (Code.gs) Anda.');
-                            }
-                            urlResiStpd = scriptResult.url_resi_stpd;
+                        if (!scriptResult.url_resi_stpd) {
+                            throw new Error('Gagal mengupload resi STPD. URL resi tidak dikembalikan oleh server.');
                         }
+                        urlResiStpd = scriptResult.url_resi_stpd;
                     }
                 }
 
@@ -323,7 +308,7 @@ function adminApp(type) {
                     updateData.url_berkas_stpd = urlBerkasStpd;
                     updateData.url_resi_stpd = urlResiStpd;
                     // If newly activated, status is 'Menunggu Pembayaran'. Otherwise, preserve or set from admin input
-                    if (!this.selectedBerkas.url_berkas_stpd) {
+                    if (!this.selectedBerkas.stpd_status && !this.selectedBerkas.stpd_denda) {
                         updateData.stpd_status = 'Menunggu Pembayaran';
                     } else {
                         updateData.stpd_status = this.adminForm.stpd_status || 'Menunggu Pembayaran';

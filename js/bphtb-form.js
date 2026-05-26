@@ -173,7 +173,8 @@ function bphtbFormApp() {
         },
 
         get npoptkp() {
-            return (this.form.jenisPerolehan === 'Waris' || this.form.jenisPerolehan === 'Hibah wasiat') ? 300000000 : 80000000;
+            const jp = String(this.form.jenisPerolehan).toLowerCase();
+            return (jp === 'waris' || jp === 'hibah_wasiat' || jp === 'hibah wasiat') ? 300000000 : 80000000;
         },
 
         get estimasiBphtb() {
@@ -311,10 +312,10 @@ function bphtbFormApp() {
                     luas_bangunan:  this.form.luasBangunan,
                     njop_bangunan:  this.form.njopBangunan,
                     total_njop:     this.totalNjop,
-                    nilai_transaksi: this.form.jenisPerolehan === 'jual_beli' ? this.form.nilaiTransaksi : 0,
+                    nilai_transaksi: String(this.form.jenisPerolehan).toLowerCase() === 'jual_beli' ? this.form.nilaiTransaksi : 0,
                     jenis_perolehan: this.form.jenisPerolehan,
                     notaris:        this.form.notaris,
-                    pajak:          this.form.jenisPerolehan === 'jual_beli' ? this.estimasiBphtb : 0,
+                    pajak:          String(this.form.jenisPerolehan).toLowerCase() === 'jual_beli' ? this.estimasiBphtb : 0,
                     url_ktp:        ktpUrl,
                     url_sertifikat: sertifikatUrl,
                     url_pendukung:  pendukungUrl,

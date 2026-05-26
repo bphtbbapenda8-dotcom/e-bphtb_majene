@@ -153,8 +153,7 @@ async function generateBeritaAcaraReguler(d) {
     y += fieldLine('4', 'NOP PBB', d.nop, y) * 5;
     y += fieldLine('5', 'Letak Objek Pajak', d.alamat_op || d.letak_tanah_bangunan || '-', y) * 5;
     y += fieldLine('6', 'Jenis Perolehan Hak', String(d.jenis_perolehan || '-').replace(/_/g, ' ').toUpperCase(), y) * 5;
-    y += fieldLine('7', 'Nama Penjual / Pemilik Asal', d.nama_penjual || '-', y) * 5;
-    y += fieldLine('8', 'Nama Notaris / PPAT', d.notaris || '-', y) * 5;
+    y += fieldLine('7', 'Nama Notaris / PPAT', d.notaris || '-', y) * 5;
     y += 2;
 
     // ── II. HASIL VERIFIKASI ADMINISTRASI (BERKAS) ────────────────
@@ -168,22 +167,60 @@ async function generateBeritaAcaraReguler(d) {
     y += linesBerkas.length * 4.5 + 2;
 
     const isLengkap = ['Pembayaran', 'Pembayaran sedang diverifikasi', 'Selesai'].includes(d.alur_berkas);
+    const isDitolak = d.alur_berkas === 'Berkas ditolak';
 
-    doc.text('1.  Kelengkapan Dokumen', lm + 4, y); doc.text(':', lm + 55, y);
-    setFont('bold', 9.5); doc.text(isLengkap ? '[ LENGKAP ]' : '[ LENGKAP / TIDAK LENGKAP ]', lm + 58, y); setFont('normal', 9.5);
-    y += 5;
+    let vfBerkas = {};
+    try {
+        if (typeof d.data_verifikasi_berkas === 'string') {
+            vfBerkas = JSON.parse(d.data_verifikasi_berkas || '{}');
+        } else if (typeof d.data_verifikasi_berkas === 'object' && d.data_verifikasi_berkas !== null) {
+            vfBerkas = d.data_verifikasi_berkas;
+        }
+    } catch(e) {}
+
+    const keleng = vfBerkas.kelengkapan || {};
+    const kesesu = vfBerkas.kesesuaian || {};
+
+    const checkKtp = keleng.ktp || (isLengkap && !d.data_verifikasi_berkas);
+    const checkSertifikat = keleng.sertifikat || (isLengkap && !d.data_verifikasi_berkas);
+    const checkSppt = keleng.sppt || (isLengkap && !d.data_verifikasi_berkas);
+    
+    const checkIdentitasSesuai = kesesu.identitas === 'sesuai' || (isLengkap && !d.data_verifikasi_berkas);
+    const checkIdentitasTidakSesuai = kesesu.identitas === 'tidak_sesuai' || (isDitolak && !d.data_verifikasi_berkas);
+
+    const checkTransaksiSesuai = kesesu.transaksi === 'sesuai' || (isLengkap && !d.data_verifikasi_berkas);
+    const checkTransaksiTidakSesuai = kesesu.transaksi === 'tidak_sesuai' || (isDitolak && !d.data_verifikasi_berkas);
+
+    const drawCheckboxOnly = (cx, cy, checked) => {
+        doc.setLineWidth(0.5);
+        doc.rect(cx, cy - 3.5, 4, 4); // Box
+        if (checked) {
+            doc.setLineWidth(0.6);
+            doc.line(cx + 0.8, cy - 1.5, cx + 1.8, cy - 0.5);
+            doc.line(cx + 1.8, cy - 0.5, cx + 3.2, cy - 3.0);
+        }
+    };
+
+    doc.text('1.  Kelengkapan Dokumen', lm + 4, y); doc.text(':', lm + 45, y);
+    drawCheckboxOnly(lm + 48, y, checkKtp); doc.text('KTP / KK', lm + 54, y);
+    drawCheckboxOnly(lm + 75, y, checkSertifikat); doc.text('Sertifikat Tanah', lm + 81, y);
+    drawCheckboxOnly(lm + 110, y, checkSppt); doc.text('SPPT PBB / Pendukung', lm + 116, y);
+    y += 6;
 
     doc.text('2.  Kesesuaian Dokumen :', lm + 4, y); y += 5;
     doc.text('o  Identitas pada KTP dengan sertifikat/alas hak', lm + 10, y); doc.text(':', lm + 85, y);
-    setFont('bold', 9.5); doc.text(isLengkap ? '[ SESUAI ]' : '[ SESUAI / TIDAK SESUAI ]', lm + 88, y); setFont('normal', 9.5);
+    drawCheckboxOnly(lm + 88, y, checkIdentitasSesuai); doc.text('Sesuai', lm + 94, y);
+    drawCheckboxOnly(lm + 110, y, checkIdentitasTidakSesuai); doc.text('Tidak Sesuai', lm + 116, y);
     y += 5;
     
     doc.text('o  Bukti transaksi (Kuitansi/Perjanjian) dengan SSPD', lm + 10, y); doc.text(':', lm + 85, y);
-    setFont('bold', 9.5); doc.text(isLengkap ? '[ SESUAI ]' : '[ SESUAI / TIDAK SESUAI ]', lm + 88, y); setFont('normal', 9.5);
+    drawCheckboxOnly(lm + 88, y, checkTransaksiSesuai); doc.text('Sesuai', lm + 94, y);
+    drawCheckboxOnly(lm + 110, y, checkTransaksiTidakSesuai); doc.text('Tidak Sesuai', lm + 116, y);
     y += 5;
 
-    doc.text('3.  Perolehan Hak Pertama', lm + 4, y); doc.text(':', lm + 55, y);
-    setFont('bold', 9.5); doc.text(d.is_hak_pertama ? '[ Ya ]' : '[ Ya / Tidak ]', lm + 58, y); setFont('normal', 9.5);
+    doc.text('3.  Perolehan Hak Pertama', lm + 4, y); doc.text(':', lm + 45, y);
+    drawCheckboxOnly(lm + 48, y, d.is_hak_pertama); doc.text('Ya', lm + 54, y);
+    drawCheckboxOnly(lm + 65, y, !d.is_hak_pertama); doc.text('Tidak', lm + 71, y);
     y += 7;
 
     // Check if need new page

@@ -211,7 +211,8 @@ function verifikasiApp(mode) {
                         catatan = 'Ditolak karena dokumen tidak lengkap atau tidak sesuai (Otomatis).';
                     }
                     payloadTambahan.data_verifikasi_berkas = bf;
-                    payloadTambahan.is_hak_pertama = (bf.hak_pertama === 'ya');
+                    // Note: is_hak_pertama is stored inside data_verifikasi_berkas, 
+                    // avoiding schema error in pengajuan_bphtb which lacks this column.
                 }
             } else {
                 if (this.selectedBerkas.isMbr) {

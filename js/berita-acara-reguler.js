@@ -367,7 +367,6 @@ async function generateBeritaAcaraReguler(d) {
 
     y += drawCheckText(y, 'DISETUJUI sesuai pelaporan awal Wajib Pajak.', isLengkap);
     y += drawCheckText(y, 'DIKOREKSI / DISESUAIKAN berdasarkan nilai pasar wajar / luas fisik hasil temuan lapangan (Wajib Pajak melakukan pembayaran sesuai hasil koreksi).', false);
-    y += drawCheckText(y, 'DITOLAK karena dokumen tidak valid / tidak sesuai peruntukan fasilitas MBR.', d.alur_berkas === 'Berkas ditolak');
 
     y += 4;
     const penutup = 'Demikian Berita Acara ini dibuat dalam rangkap yang cukup untuk dipergunakan sebagaimana mestinya sebagai dasar penetapan Surat Setoran Pajak Daerah (SSPD) BPHTB Kabupaten Majene.';
@@ -377,14 +376,17 @@ async function generateBeritaAcaraReguler(d) {
 
     if (y > 240) { doc.addPage(); y = 20; }
 
-    doc.text('Majene, .........................................', pw / 2 + 10, y); y += 8;
+    const tglVerifikasiText = `${hari} ${bulanNama} ${tahun}`;
+    doc.text('Majene, ' + tglVerifikasiText, pw / 2 + 10, y); y += 8;
 
     setFont('bold', 9.5);
     doc.text('Tim Verifikasi Berkas / Lapangan:', lm, y); y += 10;
 
     setFont('normal', 9.5);
-    doc.text('1.', lm + 5, y);
-    doc.text('2.', pw / 2 + 10, y);
+    
+    // Tampilkan nama verifikator
+    doc.text('1. ' + (d.nama_verifikator_berkas || '...........................................'), lm + 5, y);
+    doc.text('2. ' + (d.nama_verifikator_lapangan || '...........................................'), pw / 2 + 10, y);
     
     y += 18; 
 

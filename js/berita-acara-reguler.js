@@ -32,8 +32,18 @@ async function generateBeritaAcaraReguler(d) {
     }
 
     // ── Date ─
-    const tglSrc = d.updated_at || d.created_at || new Date().toISOString();
-    const tgl        = new Date(tglSrc);
+    let dateStr = d.updated_at || d.created_at || new Date().toISOString();
+    if (d.tanggal_verifikasi_lapangan && d.tanggal_verifikasi_berkas) {
+        const d1 = new Date(d.tanggal_verifikasi_lapangan);
+        const d2 = new Date(d.tanggal_verifikasi_berkas);
+        dateStr = d1 > d2 ? d1.toISOString() : d2.toISOString();
+    } else if (d.tanggal_verifikasi_lapangan) {
+        dateStr = d.tanggal_verifikasi_lapangan;
+    } else if (d.tanggal_verifikasi_berkas) {
+        dateStr = d.tanggal_verifikasi_berkas;
+    }
+    
+    const tgl        = new Date(dateStr);
     const hari       = String(tgl.getDate()).padStart(2, '0');
     const bulanAngka = tgl.getMonth() + 1;
     const bulanNama  = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][tgl.getMonth()];
@@ -166,7 +176,7 @@ async function generateBeritaAcaraReguler(d) {
     doc.text(linesBerkas, lm, y);
     y += linesBerkas.length * 4.5 + 2;
 
-    const isLengkap = ['Pembayaran', 'Pembayaran sedang diverifikasi', 'Selesai'].includes(d.alur_berkas);
+    const isLengkap = ['Berkas diterima', 'Menunggu Persetujuan Wajib Pajak', 'Pembayaran', 'Pembayaran sedang diverifikasi', 'Penandatangan', 'Selesai'].includes(d.alur_berkas);
     const isDitolak = d.alur_berkas === 'Berkas ditolak';
 
     let vfBerkas = {};
@@ -266,23 +276,47 @@ async function generateBeritaAcaraReguler(d) {
         doc.text(c1, lm + 3, ty + 6);
         doc.text(c2, lm + colWidths[0] + 3, ty + 6);
         doc.text(c3, lm + colWidths[0] + colWidths[1] + 3, ty + 6);
-        doc.text(c4, lm + colWidths[0] + colWidths[1] + colWidths[2] + 3, ty + 6);
+        
+        const c4Lines = doc.splitTextToSize(c4, colWidths[3] - 4);
+        doc.text(c4Lines, lm + colWidths[0] + colWidths[1] + colWidths[2] + 2, ty + 5);
         ty += rowHeight;
     };
 
-    drawRow('Luas Tanah (M\u00B2)', String(d.luas_bumi||''), String(d.luas_bumi||''), '[ Sesuai / Selisih ]');
-    drawRow('Luas Bangunan (M\u00B2)', String(d.luas_bangunan||''), String(d.luas_bangunan||''), '[ Sesuai / Selisih ]');
-    drawRow('Kondisi Bangunan', '.........', '.........', '[ Kosong / Rumah Tinggal\n/ Ruko / Konstruksi ]');
-    drawRow('Nilai Transaksi /\nNPOP', 'Rp. ' + fmtRupiah(d.nilai_transaksi), 'Rp. ' + fmtRupiah(d.nilai_transaksi), '[ Wajar / Di bawah harga\npasar ]');
+    let vfLap = {};
+    try {
+        if (typeof d.data_verifikasi_lapangan === 'string') {
+            vfLap = JSON.parse(d.data_verifikasi_lapangan || '{}');
+        } else if (typeof d.data_verifikasi_lapangan === 'object' && d.data_verifikasi_lapangan !== null) {
+            vfLap = d.data_verifikasi_lapangan;
+        }
+    } catch(e) {}
+
+    const formatKesimpulan = (val, defaultVal) => {
+        if (!val) return defaultVal;
+        return '[ ' + String(val).replace(/_/g, ' ').toUpperCase() + ' ]';
+    };
+
+    drawRow('Luas Tanah (M\u00B2)', String(d.luas_bumi||''), String(d.luas_bumi||''), formatKesimpulan(vfLap.luas_tanah, '[ Sesuai / Selisih ]'));
+    drawRow('Luas Bangunan (M\u00B2)', String(d.luas_bangunan||''), String(d.luas_bangunan||''), formatKesimpulan(vfLap.luas_bangunan, '[ Sesuai / Selisih ]'));
+    drawRow('Kondisi Bangunan', '.........', '.........', formatKesimpulan(vfLap.kondisi_bangunan, '[ Kosong / Rumah Tinggal\n/ Ruko / Konstruksi ]'));
+    drawRow('Nilai Transaksi /\nNPOP', 'Rp. ' + fmtRupiah(d.nilai_transaksi), 'Rp. ' + fmtRupiah(d.nilai_transaksi), formatKesimpulan(vfLap.nilai_transaksi, '[ Wajar / Di bawah harga\npasar ]'));
 
     y = ty + 5;
     doc.setFont('helvetica', 'italic'); doc.setFontSize(9.5);
     doc.text('Catatan Temuan Lapangan:', lm, y); y += 5;
-    doc.setLineDash([0.5, 0.5]);
-    doc.line(lm, y, rm, y); y += 6;
-    doc.line(lm, y, rm, y); y += 6;
-    doc.line(lm, y, rm, y); y += 6;
-    doc.setLineDash([]);
+    
+    if (vfLap.catatan) {
+        doc.setFont('helvetica', 'normal');
+        const catatanLines = doc.splitTextToSize(vfLap.catatan, cw);
+        doc.text(catatanLines, lm, y);
+        y += catatanLines.length * 4.5 + 2;
+    } else {
+        doc.setLineDash([0.5, 0.5]);
+        doc.line(lm, y, rm, y); y += 6;
+        doc.line(lm, y, rm, y); y += 6;
+        doc.line(lm, y, rm, y); y += 6;
+        doc.setLineDash([]);
+    }
 
     if (y > 230) { doc.addPage(); y = 20; }
 
@@ -297,7 +331,9 @@ async function generateBeritaAcaraReguler(d) {
     y += linesKesimpulan.length * 4.5 + 2;
 
     const npop = Math.max(d.total_njop || 0, d.nilai_transaksi || 0);
-    const npoptkp = 60000000; // Standar default, kalau di DB ada npoptkp bisa d.npoptkp
+    const isWaris = (d.jenis_perolehan === 'waris');
+    const npoptkp = isWaris ? 300000000 : 80000000;
+    
     let npopkp = npop - npoptkp;
     if (npopkp < 0) npopkp = 0;
     const bphtb = Math.floor(npopkp * 0.05);

@@ -167,6 +167,24 @@
                             </button>
                         </div>
                         <div class="modal-body">
+                            <!-- Tombol Download Berita Acara -->
+                            <template x-if="['Pembayaran', 'Pembayaran sedang diverifikasi', 'Selesai'].includes(selectedBerkas?.alur_berkas)">
+                                <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:.85rem;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
+                                    <div>
+                                        <div style="color:#bfdbfe;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Verifikasi Berkas Selesai</div>
+                                        <div style="color:#fff;font-weight:900;font-size:.9rem;margin-top:.2rem">Berita Acara Verifikasi Administrasi &amp; Lapangan</div>
+                                        <div style="color:#93c5fd;font-size:.7rem;margin-top:.15rem">Siap diunduh &amp; ditandatangani</div>
+                                    </div>
+                                    <button
+                                        @click="generateBeritaAcaraReguler(selectedBerkas)"
+                                        style="background:#fff;color:#1d4ed8;font-weight:900;font-size:.8rem;border:none;border-radius:.65rem;padding:.6rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)"
+                                    >
+                                        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        Unduh Berita Acara
+                                    </button>
+                                </div>
+                            </template>
+
                             <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem">
                                 
                                 <!-- Column 1: Read-only Taxpayer Details -->
@@ -391,6 +409,7 @@
 <script src="js/wilayah.js?v=2"></script>
 <script src="js/sidebar.js?v=2"></script>
 <script src="js/stpd-generator.js"></script>
+<script src="js/berita-acara-reguler.js"></script>
 <script src="js/admin.js?v=2"></script>
 <script>initSidebar();</script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

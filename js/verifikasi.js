@@ -27,6 +27,12 @@ function verifikasiApp(mode) {
             hak_pertama: false
         },
 
+        berkasFormReguler: {
+            kelengkapan: { ktp: false, sertifikat: false, sppt: false },
+            kesesuaian: { identitas: '', transaksi: '' },
+            hak_pertama: ''
+        },
+
         lapanganForm: {
             kondisi_tanah: '',
             jenis_bangunan: '',
@@ -137,6 +143,11 @@ function verifikasiApp(mode) {
                     harga: item.nilai_transaksi || 0,
                     hak_pertama: false
                 };
+                this.berkasFormReguler = {
+                    kelengkapan: { ktp: false, sertifikat: false, sppt: false },
+                    kesesuaian: { identitas: '', transaksi: '' },
+                    hak_pertama: ''
+                };
             } else {
                 this.lapanganForm = {
                     kondisi_tanah: '',
@@ -158,28 +169,35 @@ function verifikasiApp(mode) {
         },
 
         async submitVerifikasi() {
-            // Check if MBR, only MBR gets the new checklist according to user
-            if (!this.selectedBerkas.isMbr) {
-                // For Reguler, fallback to original logic
-                return this.setujuiBerkas();
-            }
-
             let statusValue = 'disetujui';
             let catatan = null;
             let payloadTambahan = {};
 
             if (this.mode === 'berkas') {
-                const bf = this.berkasForm;
-                // Validation: if any field is missing or not checked
-                if (!bf.status_perkawinan || !bf.penghasilan || !bf.hak_pertama || 
-                    !bf.kelengkapan.ktp || !bf.kelengkapan.kk || !bf.kelengkapan.sertifikat || 
-                    !bf.kelengkapan.ajb || !bf.kelengkapan.spk || !bf.kelengkapan.sppt || 
-                    !bf.kelengkapan.ket_rumah || (bf.status_perkawinan === 'belum_menikah' && !bf.kelengkapan.surat_belum_menikah)) {
-                    
-                    statusValue = 'ditolak';
-                    catatan = 'Ditolak karena berkas tidak lengkap atau tidak memenuhi syarat (Otomatis).';
+                if (this.selectedBerkas.isMbr) {
+                    const bf = this.berkasForm;
+                    // Validation: if any field is missing or not checked
+                    if (!bf.status_perkawinan || !bf.penghasilan || !bf.hak_pertama || 
+                        !bf.kelengkapan.ktp || !bf.kelengkapan.kk || !bf.kelengkapan.sertifikat || 
+                        !bf.kelengkapan.ajb || !bf.kelengkapan.spk || !bf.kelengkapan.sppt || 
+                        !bf.kelengkapan.ket_rumah || (bf.status_perkawinan === 'belum_menikah' && !bf.kelengkapan.surat_belum_menikah)) {
+                        
+                        statusValue = 'ditolak';
+                        catatan = 'Ditolak karena berkas tidak lengkap atau tidak memenuhi syarat (Otomatis).';
+                    }
+                    payloadTambahan.data_verifikasi_berkas = bf;
+                } else {
+                    const bf = this.berkasFormReguler;
+                    // Validation for Reguler
+                    if (!bf.kelengkapan.ktp || !bf.kelengkapan.sertifikat || !bf.kelengkapan.sppt ||
+                        bf.kesesuaian.identitas !== 'sesuai' || bf.kesesuaian.transaksi !== 'sesuai' ||
+                        !bf.hak_pertama) {
+                        statusValue = 'ditolak';
+                        catatan = 'Ditolak karena dokumen tidak lengkap atau tidak sesuai (Otomatis).';
+                    }
+                    payloadTambahan.data_verifikasi_berkas = bf;
+                    payloadTambahan.is_hak_pertama = (bf.hak_pertama === 'ya');
                 }
-                payloadTambahan.data_verifikasi_berkas = bf;
             } else {
                 const lf = this.lapanganForm;
                 if (!lf.kondisi_tanah || !lf.jenis_bangunan || lf.luas_bangunan !== 'sesuai' || lf.luas_tanah !== 'sesuai') {

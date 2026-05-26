@@ -42,6 +42,14 @@ function verifikasiApp(mode) {
             pajak_ditetapkan_disp: ''
         },
 
+        lapanganFormReguler: {
+            luas_tanah: '',
+            luas_bangunan: '',
+            kondisi_bangunan: '',
+            nilai_transaksi: '',
+            catatan: ''
+        },
+
         init() {
             // Auth Enforcement handled by sidebar.js `initSidebar()`
             this.fetchData();
@@ -157,6 +165,13 @@ function verifikasiApp(mode) {
                     pajak_ditetapkan: 0,
                     pajak_ditetapkan_disp: ''
                 };
+                this.lapanganFormReguler = {
+                    luas_tanah: '',
+                    luas_bangunan: '',
+                    kondisi_bangunan: '',
+                    nilai_transaksi: '',
+                    catatan: ''
+                };
             }
 
             this.showModal = true;
@@ -199,21 +214,39 @@ function verifikasiApp(mode) {
                     payloadTambahan.is_hak_pertama = (bf.hak_pertama === 'ya');
                 }
             } else {
-                const lf = this.lapanganForm;
-                if (!lf.kondisi_tanah || !lf.jenis_bangunan || lf.luas_bangunan !== 'sesuai' || lf.luas_tanah !== 'sesuai') {
-                    statusValue = 'ditolak';
-                    catatan = 'Ditolak karena data lapangan tidak sesuai (Otomatis).';
+                if (this.selectedBerkas.isMbr) {
+                    const lf = this.lapanganForm;
+                    if (!lf.kondisi_tanah || !lf.jenis_bangunan || lf.luas_bangunan !== 'sesuai' || lf.luas_tanah !== 'sesuai') {
+                        statusValue = 'ditolak';
+                        catatan = 'Ditolak karena data lapangan tidak sesuai (Otomatis).';
+                    }
+                    payloadTambahan.data_verifikasi_lapangan = lf;
+                } else {
+                    const lfr = this.lapanganFormReguler;
+                    if (!lfr.luas_tanah || !lfr.luas_bangunan || !lfr.kondisi_bangunan || !lfr.nilai_transaksi) {
+                        Swal.fire('Error', 'Harap isi semua checklist evaluasi lapangan secara lengkap.', 'error');
+                        this.loading = false;
+                        return;
+                    }
+                    payloadTambahan.data_verifikasi_lapangan = lfr;
                 }
-                payloadTambahan.data_verifikasi_lapangan = lf;
             }
 
-            const actionText = statusValue === 'disetujui' ? 'Setujui Pengajuan?' : 'Tolak Pengajuan (Tidak Layak)?';
+            const isMbr = this.selectedBerkas.isMbr;
+            const actionText = statusValue === 'disetujui' ? 'Setujui Pengajuan?' : 'Tolak Pengajuan?';
             const iconType = statusValue === 'disetujui' ? 'question' : 'warning';
             const confirmColor = statusValue === 'disetujui' ? '#16a34a' : '#dc2626';
+            
+            let statusAkhirTxt = '';
+            if (statusValue === 'disetujui') {
+                statusAkhirTxt = isMbr ? 'LAYAK DIBEBASKAN BPHTB' : 'BERKAS SESUAI & LANJUT PROSES KETETAPAN';
+            } else {
+                statusAkhirTxt = isMbr ? 'TIDAK LAYAK (Ditolak)' : 'BERKAS DITOLAK';
+            }
 
             const confirm = await Swal.fire({
                 title: actionText,
-                text: 'Status akhir: ' + (statusValue === 'disetujui' ? 'LAYAK DIBEBASKAN BPHTB' : 'TIDAK LAYAK (Ditolak)'),
+                text: 'Status akhir: ' + statusAkhirTxt,
                 icon: iconType,
                 showCancelButton: true,
                 confirmButtonColor: confirmColor,
@@ -232,11 +265,19 @@ function verifikasiApp(mode) {
 
             try {
                 this.loading = true;
+                const lfr = this.lapanganFormReguler;
+                if (!lfr.luas_tanah || !lfr.luas_bangunan || !lfr.kondisi_bangunan || !lfr.nilai_transaksi) {
+                    Swal.fire('Error', 'Harap isi semua checklist evaluasi lapangan secara lengkap sebelum menetapkan pajak.', 'error');
+                    this.loading = false;
+                    return;
+                }
+
                 const { error } = await db.from('pengajuan_bphtb')
                     .update({ 
                         pajak_ditetapkan: this.lapanganForm.pajak_ditetapkan,
                         status_persetujuan_wp: 'menunggu_wp',
-                        alur_berkas: 'Menunggu Persetujuan Wajib Pajak'
+                        alur_berkas: 'Menunggu Persetujuan Wajib Pajak',
+                        data_verifikasi_lapangan: lfr
                     })
                     .eq('no_pengajuan', this.selectedBerkas.no_pengajuan);
 

@@ -79,8 +79,14 @@ function verifikasiApp(mode) {
                 // Assuming any new request is implicitly "Menunggu Verifikasi"
                 // Usually indicated by alur_berkas = 'Berkas sedang diverifikasi'
                 // Here we just fetch all to be safe, but sort by date. 
-                // Filter out 'Dibatalkan'
-                combined = combined.filter(item => item.alur_berkas !== 'Dibatalkan oleh sistem');
+                // Filter out cancelled and rejected
+                combined = combined.filter(item => 
+                    item.alur_berkas !== 'Dibatalkan oleh sistem' &&
+                    item.alur_berkas !== 'Berkas ditolak' &&
+                    !String(item.alur_berkas || '').toLowerCase().startsWith('ditolak') &&
+                    item.verifikasi_berkas_status !== 'ditolak' &&
+                    item.verifikasi_lapangan_status !== 'ditolak'
+                );
 
                 // Sort: Prioritize 'menunggu' status to appear on top
                 combined.sort((a, b) => {

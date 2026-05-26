@@ -237,6 +237,59 @@
                                     <!-- Tombol Lama Khusus Reguler -->
                                     <template x-if="!selectedBerkas?.isMbr">
                                         <div class="mt-6 border-t border-slate-200 pt-4">
+
+                                            <template x-if="selectedBerkas?.verifikasi_lapangan_status !== 'disetujui' && selectedBerkas?.verifikasi_lapangan_status !== 'ditolak' && selectedBerkas?.status_persetujuan_wp !== 'menunggu_wp' && selectedBerkas?.status_persetujuan_wp !== 'disetujui_wp'">
+                                                <div>
+                                                    <div class="modal-section-title" style="margin-bottom: 1rem;">Form Checklist Verifikasi Lapangan (Reguler)</div>
+                                                    
+                                                    <div style="display:flex; flex-direction:column; gap:1rem; background:#f8fafc; padding:1.25rem; border-radius:0.75rem; border:1px solid #e2e8f0; margin-bottom: 1rem;">
+                                                        
+                                                        <!-- 1. Luas Tanah -->
+                                                        <div>
+                                                            <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">1. Luas Tanah</label>
+                                                            <div style="display:flex; gap:1.5rem;">
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.luas_tanah" value="sesuai" style="width:1rem;height:1rem;"> Sesuai</label>
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.luas_tanah" value="selisih" style="width:1rem;height:1rem;"> Selisih</label>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- 2. Luas Bangunan -->
+                                                        <div>
+                                                            <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">2. Luas Bangunan</label>
+                                                            <div style="display:flex; gap:1.5rem;">
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.luas_bangunan" value="sesuai" style="width:1rem;height:1rem;"> Sesuai</label>
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.luas_bangunan" value="selisih" style="width:1rem;height:1rem;"> Selisih</label>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- 3. Kondisi Bangunan -->
+                                                        <div>
+                                                            <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">3. Kondisi Bangunan</label>
+                                                            <div style="display:flex; gap:1.5rem;">
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.kondisi_bangunan" value="kosong" style="width:1rem;height:1rem;"> Kosong</label>
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.kondisi_bangunan" value="rumah_tinggal" style="width:1rem;height:1rem;"> Rumah Tinggal</label>
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.kondisi_bangunan" value="ruko" style="width:1rem;height:1rem;"> Ruko</label>
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.kondisi_bangunan" value="konstruksi" style="width:1rem;height:1rem;"> Konstruksi</label>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- 4. Nilai Transaksi / NPOP -->
+                                                        <div>
+                                                            <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">4. Nilai Transaksi / NPOP</label>
+                                                            <div style="display:flex; gap:1.5rem;">
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.nilai_transaksi" value="wajar" style="width:1rem;height:1rem;"> Wajar</label>
+                                                                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="radio" x-model="lapanganFormReguler.nilai_transaksi" value="di_bawah_harga_pasar" style="width:1rem;height:1rem;"> Di Bawah Harga Pasar</label>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Catatan Temuan -->
+                                                        <div>
+                                                            <label style="font-weight:700; color:#334155; display:block; margin-bottom:0.5rem; font-size:0.875rem;">Catatan Temuan Lapangan</label>
+                                                            <textarea x-model="lapanganFormReguler.catatan" class="input-field" rows="2" placeholder="Tuliskan temuan lapangan..."></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
                                             
                                             <template x-if="selectedBerkas?.jenis_perolehan !== 'jual_beli'">
                                                 <div style="background:#f8fafc; padding:1.25rem; border-radius:0.75rem; border:1px solid #e2e8f0; margin-bottom:1rem;">
@@ -280,7 +333,7 @@
                                                 
                                                 <!-- Jika Jual Beli ATAU Non-Jual Beli tapi sudah disetujui WP, tampilkan tombol Selesai Verifikasi Lapangan -->
                                                 <template x-if="selectedBerkas?.jenis_perolehan === 'jual_beli' || selectedBerkas?.status_persetujuan_wp === 'disetujui_wp'">
-                                                    <button @click="setujuiBerkas()" class="btn-action btn-action-green" style="padding:.5rem 1rem">Selesai Verifikasi Lapangan</button>
+                                                    <button @click="submitVerifikasi()" class="btn-action btn-action-green" style="padding:.5rem 1rem">Selesai Verifikasi Lapangan</button>
                                                 </template>
                                                 
                                                 <!-- Jika Non-Jual Beli dan belum disetujui WP -->

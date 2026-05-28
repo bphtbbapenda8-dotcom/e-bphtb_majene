@@ -4,17 +4,30 @@
 
 // ── Auth ──────────────────────────────────────────────────────────
 
-function checkAuth() {
+async function checkAuth() {
     const userStr = sessionStorage.getItem('ebphtb_user_data');
     if (!userStr) {
-        // Clear both new and legacy session data to prevent infinite redirect loops
-        // in case the browser executes a cached version of index.html
         sessionStorage.removeItem('ebphtb_user_data');
         sessionStorage.removeItem('ebphtb_user');
         window.location.href = 'index.html';
         return null;
     }
-    return JSON.parse(userStr);
+
+    try {
+        // Validasi ke Supabase apakah sesi (Token JWT) masih aktif
+        const { data: { session }, error } = await db.auth.getSession();
+        if (error || !session) {
+            throw new Error('Sesi tidak valid atau telah berakhir');
+        }
+        return JSON.parse(userStr);
+    } catch (err) {
+        console.error('Auth Check Failed:', err);
+        sessionStorage.removeItem('ebphtb_user_data');
+        sessionStorage.removeItem('ebphtb_user');
+        await db.auth.signOut(); // Pastikan supabase auth juga bersih
+        window.location.href = 'index.html';
+        return null;
+    }
 }
 
 function getUser() {
@@ -26,27 +39,18 @@ function getUser() {
     return fallback ? { nama: fallback, role: 'Pengguna' } : { nama: 'User', role: 'Pengguna' };
 }
 
-function logout() {
+async function logout() {
     sessionStorage.removeItem('ebphtb_user_data');
     sessionStorage.removeItem('ebphtb_user');
+    await db.auth.signOut();
     window.location.href = 'index.html';
 }
 
-async function hashSHA256Local(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 async function changePassword() {
-    const userData = checkAuth();
-    if (!userData) return;
-
+    // Dengan Supabase Auth, ganti password harus melalui API bawaannya (db.auth.updateUser)
     const { value: formValues } = await Swal.fire({
         title: 'Ganti Password',
         html: `
-            <input id="swal-old-pwd" type="password" class="swal2-input" placeholder="Password Lama" style="font-size:0.875rem">
             <input id="swal-new-pwd" type="password" class="swal2-input" placeholder="Password Baru" style="font-size:0.875rem">
             <input id="swal-confirm-pwd" type="password" class="swal2-input" placeholder="Konfirmasi Password Baru" style="font-size:0.875rem">
         `,
@@ -56,11 +60,10 @@ async function changePassword() {
         cancelButtonText: 'Batal',
         confirmButtonColor: '#1d4ed8',
         preConfirm: () => {
-            const oldP = document.getElementById('swal-old-pwd').value;
             const newP = document.getElementById('swal-new-pwd').value;
             const conf = document.getElementById('swal-confirm-pwd').value;
             
-            if (!oldP || !newP || !conf) {
+            if (!newP || !conf) {
                 Swal.showValidationMessage('Semua kolom harus diisi');
                 return false;
             }
@@ -68,7 +71,11 @@ async function changePassword() {
                 Swal.showValidationMessage('Password baru dan konfirmasi tidak cocok');
                 return false;
             }
-            return { oldP, newP };
+            if (newP.length < 6) {
+                Swal.showValidationMessage('Password minimal 6 karakter');
+                return false;
+            }
+            return { newP };
         }
     });
 
@@ -80,22 +87,11 @@ async function changePassword() {
                 didOpen: () => { Swal.showLoading(); }
             });
 
-            const oldHash = await hashSHA256Local(formValues.oldP);
-            const { data: userDb, error: errCheck } = await db.from('users')
-                .select('id')
-                .eq('id', userData.id)
-                .eq('password', oldHash)
-                .maybeSingle();
+            const { data, error } = await db.auth.updateUser({
+                password: formValues.newP
+            });
 
-            if (errCheck) throw errCheck;
-            if (!userDb) throw new Error('Password lama salah!');
-
-            const newHash = await hashSHA256Local(formValues.newP);
-            const { error: errUpdate } = await db.from('users')
-                .update({ password: newHash })
-                .eq('id', userData.id);
-
-            if (errUpdate) throw errUpdate;
+            if (error) throw error;
 
             Swal.fire({
                 icon: 'success',
@@ -287,8 +283,8 @@ function buildSidebarHTML(activeMenu, activeSubMenu, userData) {
 
 // ── Main Init ─────────────────────────────────────────────────────
 
-function initSidebar() {
-    const userData = checkAuth();
+async function initSidebar() {
+    const userData = await checkAuth();
     if (!userData) return;
 
     const activeMenu    = document.body.dataset.menu    || '';

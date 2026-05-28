@@ -334,6 +334,8 @@ function bphtbFormApp() {
                     if (error) throw new Error('Gagal mengupdate database: ' + error.message);
                     sessionStorage.removeItem('edit_pengajuan_id');
 
+                    try { logActivity('Revisi BPHTB Reguler', `Melakukan revisi untuk berkas No: ${this.editData.no_pengajuan}`); } catch(e) {}
+
                     await Swal.fire({
                         icon: 'success',
                         title: 'Berkas Berhasil Diperbarui!',
@@ -349,6 +351,8 @@ function bphtbFormApp() {
 
                     const { error } = await db.from('pengajuan_bphtb').insert([payload]);
                     if (error) throw new Error('Gagal menyimpan ke database: ' + error.message);
+
+                    try { logActivity('Pengajuan BPHTB Reguler', `Mengajukan berkas baru dengan No: ${noPengajuan}`); } catch(e) {}
 
                     await Swal.fire({
                         icon: 'success',

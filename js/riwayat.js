@@ -75,7 +75,23 @@ function riwayatApp(type) {
                 const result = await q;
                 if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
 
-                this.data = result.data || [];
+                let rawData = result.data || [];
+
+                // Sort: Berkas 'Selesai' di bawah. Sisanya diurutkan berdasarkan waktu pembaruan terakhir.
+                rawData.sort((a, b) => {
+                    const isSelesaiA = (a.alur_berkas === 'Selesai') ? 1 : 0;
+                    const isSelesaiB = (b.alur_berkas === 'Selesai') ? 1 : 0;
+
+                    if (isSelesaiA !== isSelesaiB) {
+                        return isSelesaiA - isSelesaiB; // 0 (belum selesai) lebih dulu dari 1 (Selesai)
+                    }
+
+                    const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+                    const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+                    return dateB - dateA; // DESC
+                });
+
+                this.data = rawData;
             } catch (err) {
                 console.error('[Riwayat] fetchData error:', err);
                 this.errorMsg = err.message;

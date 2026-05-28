@@ -140,26 +140,32 @@ function manajemenUserApp() {
                     no_hp: this.form.no_hp
                 };
 
-                // Hash password if provided
-                if (this.form.password || this.form.passwordConfirm) {
-                    if (this.form.password !== this.form.passwordConfirm) {
-                        throw new Error('Password dan Konfirmasi Password tidak cocok!');
-                    }
-                    if (this.form.password.length < 6) {
-                        throw new Error('Password minimal 6 karakter!');
-                    }
-                    payload.password = await hashSHA256(this.form.password);
-                }
-
                 if (this.modalMode === 'add') {
+                    if (!this.form.password) throw new Error('Password wajib diisi untuk user baru.');
+                    if (this.form.password !== this.form.passwordConfirm) throw new Error('Password dan Konfirmasi tidak cocok!');
+                    if (this.form.password.length < 6) throw new Error('Password minimal 6 karakter!');
+                    if (!payload.email) throw new Error('Email wajib diisi untuk didaftarkan ke sistem keamanan.');
+
                     // check unique
                     const { data: exist } = await db.from('users').select('username').eq('username', this.form.username);
                     if (exist && exist.length > 0) throw new Error('Username sudah ada!');
                     
-                    if (!payload.password) throw new Error('Password wajib diisi untuk user baru.');
+                    // Gunakan Supabase Client sekunder untuk menghindari Admin ter-logout
+                    const tempClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+                        auth: { persistSession: false, autoRefreshToken: false }
+                    });
+
+                    const { data: authData, error: authErr } = await tempClient.auth.signUp({
+                        email: payload.email,
+                        password: this.form.password
+                    });
+
+                    if (authErr) throw new Error('Gagal mendaftarkan email ke sistem keamanan: ' + authErr.message);
                     
+                    payload.auth_id = authData.user.id;
                     payload.username = this.form.username;
                     payload.status = 'aktif';
+                    payload.password = 'SUPABASE_AUTH_MANAGED';
 
                     const { error } = await db.from('users').insert([payload]);
                     if (error) throw error;

@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen User | e-BPHTB Majene</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/table.css">
+    <link rel="stylesheet" href="css/main.css?v=3">
+    <link rel="stylesheet" href="css/layout.css?v=3">
+    <link rel="stylesheet" href="css/table.css?v=3">
 </head>
 <body data-menu="manajemen-user" data-submenu="manajemen-user-list">
 
@@ -188,25 +188,33 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="field-label">Email</label>
-                                        <input type="email" x-model="form.email" class="input-field">
+                                        <label class="field-label">Email <span x-show="modalMode==='add'">*</span></label>
+                                        <input type="email" x-model="form.email" class="input-field" :disabled="modalMode !== 'add'" :required="modalMode === 'add'">
+                                        <p class="text-[10px] text-slate-400 mt-1" x-show="modalMode !== 'add'">Email terhubung ke sistem keamanan, tidak bisa diubah.</p>
                                     </div>
                                     <div>
                                         <label class="field-label">No HP / WA</label>
                                         <input type="text" x-model="form.no_hp" class="input-field">
                                     </div>
-                                    <div class="md:col-span-2" x-show="modalMode === 'add' || form.passwordReset">
+                                    <div class="md:col-span-2" x-show="modalMode === 'add'">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label class="field-label">Password <span x-show="modalMode==='add'">*</span></label>
-                                                <input type="password" x-model="form.password" class="input-field" :required="modalMode === 'add' || form.passwordReset" placeholder="••••••••">
+                                                <input type="password" x-model="form.password" class="input-field" :required="modalMode === 'add'" placeholder="••••••••">
                                             </div>
                                             <div>
                                                 <label class="field-label">Konfirmasi Password <span x-show="modalMode==='add'">*</span></label>
-                                                <input type="password" x-model="form.passwordConfirm" class="input-field" :required="modalMode === 'add' || form.passwordReset" placeholder="••••••••">
+                                                <input type="password" x-model="form.passwordConfirm" class="input-field" :required="modalMode === 'add'" placeholder="••••••••">
                                             </div>
                                         </div>
-                                        <p class="text-[10px] text-slate-400 mt-2" x-show="modalMode==='edit'">Isi hanya jika ingin mereset password pengguna ini.</p>
+                                    </div>
+                                    <div class="md:col-span-2" x-show="modalMode !== 'add'">
+                                        <div class="bg-blue-50 border border-blue-200 text-blue-700 text-xs p-3 rounded-lg flex gap-2">
+                                            <svg class="w-4 h-4 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            <div>
+                                                Reset password hanya dapat dilakukan oleh pengguna melalui fitur Lupa Password atau melalui Dashboard Supabase secara manual demi keamanan.
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex gap-2 justify-end pt-4 border-t border-slate-100 mt-4">
@@ -227,10 +235,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="js/config.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/sidebar.js"></script>
-<script src="js/manajemen-user.js"></script>
+<script src="js/config.js?v=5"></script>
+<script src="js/utils.js?v=5"></script>
+<script src="js/sidebar.js?v=5"></script>
+<script src="js/manajemen-user.js?v=5"></script>
 <script>initSidebar();</script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>

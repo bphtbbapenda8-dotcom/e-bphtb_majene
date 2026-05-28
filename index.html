@@ -6,7 +6,7 @@
     <title>Login | e-BPHTB Online — BAPENDA Kabupaten Majene</title>
     <meta name="description" content="Login Sistem e-BPHTB Online BAPENDA Kabupaten Majene — Pengajuan BPHTB secara digital.">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/main.css?v=3">
     <style>
         .login-bg {
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 45%, #1d4ed8 100%);
@@ -130,8 +130,8 @@
                 <h2 class="text-lg font-bold text-slate-700 mb-4 text-center">Masuk ke Akun Anda</h2>
                 <form @submit.prevent="doLogin" class="space-y-5">
                     <div>
-                        <label class="field-label" for="username-input">Username</label>
-                        <input id="username-input" x-model="login.username" type="text" class="login-input" placeholder="Masukkan Username" required autocomplete="username">
+                        <label class="field-label" for="email-input">Email</label>
+                        <input id="email-input" x-model="login.email" type="email" class="login-input" placeholder="Masukkan Email Anda" required autocomplete="email">
                     </div>
                     <div>
                         <label class="field-label" for="password-input">Password</label>
@@ -260,8 +260,8 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/config.js?v=2"></script>
-    <script src="js/utils.js?v=2"></script>
+    <script src="js/config.js?v=3"></script>
+    <script src="js/utils.js?v=3"></script>
     
     <script>
         // SHA-256 Hashing helper
@@ -276,18 +276,28 @@
                 view: 'login', // 'login', 'signup', 'review'
                 loading: false,
                 login: {
-                    username: '',
+                    email: '',
                     password: ''
                 },
                 signup: {
                     nama: '', username: '', nik: '', requested_role: '', email: '', no_hp: '', alamat: '', password: '', passwordConfirm: ''
                 },
 
-                init() {
-                    // Check if already logged in
+                async init() {
+                    // Check if already logged in (dan verifikasi token)
                     const userStr = sessionStorage.getItem('ebphtb_user_data');
                     if (userStr) {
-                        this.redirectBasedOnRole(JSON.parse(userStr).role);
+                        try {
+                            const { data: { session } } = await db.auth.getSession();
+                            if (session) {
+                                this.redirectBasedOnRole(JSON.parse(userStr).role);
+                            } else {
+                                sessionStorage.removeItem('ebphtb_user_data');
+                                sessionStorage.removeItem('ebphtb_user');
+                            }
+                        } catch (e) {
+                            sessionStorage.removeItem('ebphtb_user_data');
+                        }
                     }
                 },
 
@@ -295,44 +305,51 @@
                 async doLogin() {
                     this.loading = true;
                     try {
-                        const hashPwd = await hashSHA256(this.login.password);
-                        
+                        // 1. Login menggunakan Supabase Auth (Aman via Token)
+                        const { data: authData, error: authError } = await db.auth.signInWithPassword({
+                            email: this.login.email.trim(),
+                            password: this.login.password,
+                        });
+
+                        if (authError) throw authError;
+
+                        // 2. Ambil profil user dari public.users menggunakan auth_id
                         const { data, error } = await db.from('users')
                             .select('*')
-                            .eq('username', this.login.username)
-                            .eq('password', hashPwd)
+                            .eq('auth_id', authData.user.id)
                             .maybeSingle();
 
                         if (error) throw error;
                         
                         if (!data) {
-                            Swal.fire({ icon: 'error', title: 'Login Gagal', text: 'Username atau Password salah.' });
+                            // Jika data di public.users tidak ditemukan, bisa jadi akun lama sebelum migrasi
+                            Swal.fire({ icon: 'error', title: 'Data Profil Tidak Ditemukan', text: 'Akun Anda belum dimigrasi. Silakan daftar ulang.' });
+                            await db.auth.signOut();
                             return;
                         }
 
                         if (data.status === 'pending') {
                             Swal.fire({ icon: 'warning', title: 'Menunggu Persetujuan', text: 'Akun Anda sedang menunggu persetujuan Admin Bapenda. Silakan cek berkala.' });
+                            await db.auth.signOut();
                             return;
                         }
                         if (data.status === 'beku') {
                             Swal.fire({ icon: 'error', title: 'Akun Dibekukan', text: 'Akun Anda dibekukan oleh Admin. Hubungi Bapenda untuk info lebih lanjut.' });
+                            await db.auth.signOut();
                             return;
                         }
 
                         // Login Success
-                        // Store full user data in session
                         sessionStorage.setItem('ebphtb_user_data', JSON.stringify(data));
-                        // Support backward compatibility (if sidebar.js still uses ebphtb_user)
                         sessionStorage.setItem('ebphtb_user', data.nama);
                         
-                        // Add log
                         logActivity('Login', `User ${data.username} berhasil login`);
                         
                         this.redirectBasedOnRole(data.role);
 
                     } catch (err) {
                         console.error('Login error:', err);
-                        Swal.fire({ icon: 'error', title: 'Terjadi Kesalahan', text: err.message });
+                        Swal.fire({ icon: 'error', title: 'Login Gagal', text: 'Email atau password salah, atau terjadi kesalahan jaringan.' });
                     } finally {
                         this.loading = false;
                     }
@@ -366,33 +383,51 @@
                 async doSignUp() {
                     this.loading = true;
                     try {
-                        // 1. Check if username or NIK exists
-                        const { data: existUser } = await db.from('users').select('username, nik').or(`username.eq.${this.signup.username},nik.eq.${this.signup.nik}`);
+                        // 1. Check if username or NIK exists (public.users)
+                        // Karena RLS belum auth, kita bypass sementara jika tidak bisa baca
+                        const { data: existUser } = await db.from('users').select('username, nik, email').or(`username.eq.${this.signup.username},nik.eq.${this.signup.nik},email.eq.${this.signup.email}`);
                         if (existUser && existUser.length > 0) {
                             const conflict = existUser[0];
                             if (conflict.username === this.signup.username) throw new Error('Username sudah digunakan.');
                             if (conflict.nik === this.signup.nik) throw new Error('NIK ini sudah terdaftar.');
+                            if (conflict.email === this.signup.email) throw new Error('Email ini sudah terdaftar.');
                         }
 
-                        // 2. Hash Password & Insert
-                        const hashPwd = await hashSHA256(this.signup.password);
+                        // 2. Mendaftarkan User ke Supabase Auth
+                        const { data: authData, error: authError } = await db.auth.signUp({
+                            email: this.signup.email.trim(),
+                            password: this.signup.password,
+                        });
+
+                        if (authError) throw authError;
                         
+                        if (!authData.user) {
+                            throw new Error('Gagal membuat akun autentikasi.');
+                        }
+
+                        // 3. Simpan data profil ke public.users (Jangan simpan password plaintext/hash manual lagi)
                         const payload = {
+                            auth_id: authData.user.id,
                             username: this.signup.username,
                             nama: this.signup.nama,
                             nik: this.signup.nik,
                             email: this.signup.email,
                             no_hp: this.signup.no_hp,
                             alamat: this.signup.alamat,
-                            password: hashPwd,
+                            password: 'SUPABASE_AUTH_MANAGED', // Tandai bahwa pass diatur Supabase
                             requested_role: this.signup.requested_role,
                             status: 'pending' // waits for admin approval
                         };
 
-                        const { error } = await db.from('users').insert([payload]);
-                        if (error) throw error;
+                        const { error: profileError } = await db.from('users').insert([payload]);
+                        
+                        // Fallback jika insert profil gagal
+                        if (profileError) {
+                            console.error('Profile Insert Error:', profileError);
+                            throw new Error('Akun Auth berhasil dibuat, namun gagal menyimpan profil. Hubungi Admin.');
+                        }
 
-                        // Add log
+                        // Add log (menggunakan auth sementara jika belum login penuh)
                         logActivity('Pendaftaran Baru', `User ${this.signup.nama} mendaftar sebagai ${this.signup.requested_role}`);
 
                         await Swal.fire({
@@ -401,6 +436,11 @@
                             text: 'Akun Anda telah terdaftar. Silakan tunggu persetujuan dari Admin Bapenda sebelum Anda dapat login.',
                             confirmButtonColor: '#1d4ed8'
                         });
+
+                        // Jika Supabase mengaktifkan email confirmation, beritahu user
+                        if (authData.session === null) {
+                            await Swal.fire({ icon: 'info', title: 'Verifikasi Email', text: 'Kami telah mengirimkan email verifikasi. Harap cek kotak masuk Anda.'});
+                        }
 
                         // Reset & go back to login
                         this.view = 'login';

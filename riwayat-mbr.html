@@ -54,7 +54,7 @@
                         <label class="field-label" style="font-size:.65rem">Cari Nama WP</label>
                         <input type="text" x-model="filterNama" @keyup.enter="fetchData()" placeholder="Masukkan nama..." class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
                     </div>
-                    <div class="filter-field" x-show="userRole === 'admin'">
+                    <div class="filter-field" x-show="userRole !== 'notaris'">
                         <label class="field-label" style="font-size:.65rem">Filter Notaris</label>
                         <select x-model="filterNotaris" class="input-field" style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
                             <option value="">Semua Notaris</option>
@@ -103,7 +103,7 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>No Pengajuan</th>
+                                <th>Tanggal Pengajuan</th>
                                 <th>Nama WP</th>
                                 <th>Perumahan</th>
                                 <th>Status Berkas</th>
@@ -116,7 +116,7 @@
                             <template x-for="(item, i) in data" :key="item.no_pengajuan">
                                 <tr>
                                     <td class="td-no" x-text="i + 1"></td>
-                                    <td style="font-weight:700;font-size:.7rem;font-family:monospace;color:#475569" x-text="item.no_pengajuan"></td>
+                                    <td style="font-weight:700;font-size:.7rem;font-family:monospace;color:#475569" x-text="fmtDate(item.tanggal_register || item.created_at)"></td>
                                     <td>
                                         <p class="td-name-main" x-text="item.nama"></p>
                                         <p class="td-name-sub" x-text="item.nik"></p>

@@ -34,9 +34,9 @@ function manajemenUserApp() {
             passwordReset: false
         },
 
-        init() {
+        async init() {
             // Additional protection: only admin can be here
-            const user = checkAuth();
+            const user = await checkAuth();
             if (user && user.role !== 'admin') {
                 window.location.href = 'index.html';
                 return;

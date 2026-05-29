@@ -55,10 +55,11 @@ function bphtbFormApp() {
                     setTimeout(() => { this.form.notaris = userData.nama; }, 50);
                     this.isNotaris = true;
                 } else if (userData.role === 'mandiri') {
-                    if (!this.listNotaris.includes('mandiri/perseorangan')) {
-                        this.listNotaris.push('mandiri/perseorangan');
+                    const mandiriStr = 'mandiri/perseorangan - ' + userData.nama;
+                    if (!this.listNotaris.includes(mandiriStr)) {
+                        this.listNotaris.push(mandiriStr);
                     }
-                    setTimeout(() => { this.form.notaris = 'mandiri/perseorangan'; }, 50);
+                    setTimeout(() => { this.form.notaris = mandiriStr; }, 50);
                 }
             }
 
@@ -258,6 +259,10 @@ function bphtbFormApp() {
         async submitData() {
             this.loading = true;
             try {
+                // Ambil user yang sedang login
+                const _userStr = sessionStorage.getItem('ebphtb_user_data');
+                const _userData = _userStr ? JSON.parse(_userStr) : null;
+                const _submittedById = _userData ? (_userData.auth_id || _userData.id || null) : null;
                 let ktpUrl = this.existingFiles?.url_ktp || '';
                 let sertifikatUrl = this.existingFiles?.url_sertifikat || '';
                 let pendukungUrl = this.existingFiles?.url_pendukung || '';
@@ -319,10 +324,11 @@ function bphtbFormApp() {
                     url_ktp:        ktpUrl,
                     url_sertifikat: sertifikatUrl,
                     url_pendukung:  pendukungUrl,
-                    alur_berkas:    'Berkas sedang diverifikasi', // Reset status to 'Berkas sedang diverifikasi'
-                    catatan_penolakan: null, // Clear rejection notes on resubmission
+                    alur_berkas:    'Berkas sedang diverifikasi',
+                    catatan_penolakan: null,
                     status_persetujuan_wp: null,
-                    komentar_wp: null
+                    komentar_wp: null,
+                    submitted_by_id: _submittedById
                 };
 
                 if (this.isEditMode) {

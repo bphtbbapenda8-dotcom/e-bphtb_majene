@@ -75,7 +75,11 @@ function adminApp(type) {
                 }
 
                 if (this.filterNotaris) {
-                    q = q.eq('notaris', this.filterNotaris);
+                    if (this.filterNotaris === 'mandiri/perseorangan') {
+                        q = q.ilike('notaris', 'mandiri/perseorangan%');
+                    } else {
+                        q = q.eq('notaris', this.filterNotaris);
+                    }
                 }
                 if (this.filterStatus) {
                     q = q.eq('alur_berkas', this.filterStatus);
@@ -295,7 +299,9 @@ function adminApp(type) {
                 // 4. Assemble Payload
                 const updateData = {
                     alur_berkas: status,
-                    pajak: (['Pembayaran', 'Pembayaran sedang diverifikasi', 'Selesai'].includes(status)) ? this.adminForm.pajak : 0,
+                    pajak: (['Pembayaran', 'Pembayaran sedang diverifikasi', 'Selesai'].includes(status)) 
+                        ? this.adminForm.pajak 
+                        : (status === 'Berkas ditolak' ? (this.selectedBerkas.pajak || 0) : 0),
                     no_validasi: status === 'Selesai' ? this.adminForm.no_validasi : null,
                     catatan_penolakan: status === 'Berkas ditolak' ? this.adminForm.catatan_penolakan : null,
                     link_resi: linkResi,

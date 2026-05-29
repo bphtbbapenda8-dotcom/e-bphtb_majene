@@ -463,9 +463,11 @@ async function initNotifications(userData) {
         }
 
         if (userData.role === 'notaris' || userData.role === 'mandiri') {
+            const userAuthId = userData.auth_id || userData.id;
+
             const { count: c1 } = await db.from('pengajuan_bphtb')
                 .select('*', { count: 'exact', head: true })
-                .eq('user_id', userData.id)
+                .eq('submitted_by_id', userAuthId)
                 .eq('alur_berkas', 'Berkas ditolak');
             if (c1 > 0) {
                 count += c1;
@@ -474,7 +476,7 @@ async function initNotifications(userData) {
 
             const { count: c2 } = await db.from('pengajuan_bphtb')
                 .select('*', { count: 'exact', head: true })
-                .eq('user_id', userData.id)
+                .eq('submitted_by_id', userAuthId)
                 .eq('status_persetujuan_wp', 'menunggu_wp');
             if (c2 > 0) {
                 count += c2;
@@ -483,7 +485,7 @@ async function initNotifications(userData) {
 
             const { count: c3 } = await db.from('pengajuan_bphtb')
                 .select('*', { count: 'exact', head: true })
-                .eq('user_id', userData.id)
+                .eq('submitted_by_id', userAuthId)
                 .eq('stpd_status', 'Menunggu Pembayaran');
             if (c3 > 0) {
                 count += c3;

@@ -43,39 +43,57 @@ function riwayatApp(type) {
             this.data = [];
             this.errorMsg = '';
             try {
-                let q;
-                if (this.isMbr) {
-                    q = db.from('pengajuan_mbr')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                } else {
-                    q = db.from('pengajuan_bphtb')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                }
+                const tableName = this.isMbr ? 'pengajuan_mbr' : 'pengajuan_bphtb';
 
                 const userStr = sessionStorage.getItem('ebphtb_user_data');
+                let userData = null;
                 if (userStr) {
-                    const userData = JSON.parse(userStr);
+                    userData = JSON.parse(userStr);
                     this.userRole = userData.role;
-                    const namaUser = userData.nama;
-
-                    if (this.userRole === 'notaris') {
-                        q = q.eq('notaris', namaUser);
-                    } else if (this.userRole === 'mandiri') {
-                        q = q.ilike('nama', `%${namaUser}%`);
-                    }
                 }
 
-                if (this.filterNama) q = q.ilike('nama', `%${this.filterNama}%`);
-                if (this.filterNotaris) q = q.eq('notaris', this.filterNotaris);
-                if (this.filterJenis && !this.isMbr) q = q.eq('jenis_perolehan', this.filterJenis);
-                if (this.filterStatus) q = q.eq('alur_berkas', this.filterStatus);
+                let rawData = [];
 
-                const result = await q;
-                if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+                if (userData && userData.role === 'mandiri') {
+                    // Filter berdasarkan auth_id user yang mengajukan — cara paling andal
+                    const authId = userData.auth_id || userData.id;
+                    let q = db.from(tableName).select('*');
+                    
+                    if (authId) {
+                        q = q.eq('submitted_by_id', authId);
+                    } else {
+                        // Fallback: filter berdasarkan notaris (data lama)
+                        const notarisValue = 'mandiri/perseorangan - ' + userData.nama;
+                        q = q.ilike('notaris', '%' + notarisValue + '%');
+                    }
 
-                let rawData = result.data || [];
+                    if (this.filterNama) q = q.ilike('nama', '%' + this.filterNama + '%');
+                    if (this.filterJenis && !this.isMbr) q = q.eq('jenis_perolehan', this.filterJenis);
+                    if (this.filterStatus) q = q.eq('alur_berkas', this.filterStatus);
+
+                    const result = await q;
+                    if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+                    rawData = result.data || [];
+                } else {
+                    // Query normal untuk admin, notaris, dll
+                    let q = db.from(tableName).select('*').order('created_at', { ascending: false });
+
+                    if (userData) {
+                        const namaUser = userData.nama;
+                        if (userData.role === 'notaris') {
+                            q = q.eq('notaris', namaUser);
+                        }
+                    }
+
+                    if (this.filterNama) q = q.ilike('nama', '%' + this.filterNama + '%');
+                    if (this.filterNotaris) q = q.eq('notaris', this.filterNotaris);
+                    if (this.filterJenis && !this.isMbr) q = q.eq('jenis_perolehan', this.filterJenis);
+                    if (this.filterStatus) q = q.eq('alur_berkas', this.filterStatus);
+
+                    const result = await q;
+                    if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+                    rawData = result.data || [];
+                }
 
                 // Sort: Berkas 'Selesai' di bawah. Sisanya diurutkan berdasarkan waktu pembaruan terakhir.
                 rawData.sort((a, b) => {
@@ -83,7 +101,7 @@ function riwayatApp(type) {
                     const isSelesaiB = (b.alur_berkas === 'Selesai') ? 1 : 0;
 
                     if (isSelesaiA !== isSelesaiB) {
-                        return isSelesaiA - isSelesaiB; // 0 (belum selesai) lebih dulu dari 1 (Selesai)
+                        return isSelesaiA - isSelesaiB;
                     }
 
                     const dateA = new Date(a.updated_at || a.created_at || 0).getTime();

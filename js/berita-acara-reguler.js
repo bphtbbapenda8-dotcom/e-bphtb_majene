@@ -60,15 +60,43 @@ async function generateBeritaAcaraReguler(d) {
     const tahunTerbilang = tahunMap[tahun] || String(tahun);
 
     // ── Document number ─────────
-    const nomorDoc = `${String(seqNum).padStart(3,'0')}/Verifikasi/BPHTB-REG/${bulanRoman}/${tahun}`;
+    const nomorDoc = `${String(seqNum).padStart(3,'0')}/Verifikasi/BPHTB/${bulanRoman}/${tahun}`;
 
-    // ── Load logo from server ─────────────────────────────────────
+    // ── Load logo and signatures from server ─────────────────────
     let logoDataUrl = null;
+    let ttdAdminDataUrl = null;
+    let ttdWawanDataUrl = null;
+    let ttdThomasDataUrl = null;
+    let ttdWahyuDataUrl = null;
     try {
         const resp = await fetch('logo.png');
         if (resp.ok) {
             const blob = await resp.blob();
             logoDataUrl = await compressImageToDataURL(blob, 300, 'image/png');
+        }
+        
+        const respTtd = await fetch('ttd_admin.png');
+        if (respTtd.ok) {
+            const blobTtd = await respTtd.blob();
+            ttdAdminDataUrl = await compressImageToDataURL(blobTtd, 300, 'image/png');
+        }
+        
+        const respTtdWawan = await fetch('ttd_wawan.png');
+        if (respTtdWawan.ok) {
+            const blobTtdWawan = await respTtdWawan.blob();
+            ttdWawanDataUrl = await compressImageToDataURL(blobTtdWawan, 300, 'image/png');
+        }
+
+        const respTtdThomas = await fetch('ttd_thomas.png');
+        if (respTtdThomas.ok) {
+            const blobTtdThomas = await respTtdThomas.blob();
+            ttdThomasDataUrl = await compressImageToDataURL(blobTtdThomas, 300, 'image/png');
+        }
+
+        const respTtdWahyu = await fetch('ttd_wahyu.png');
+        if (respTtdWahyu.ok) {
+            const blobTtdWahyu = await respTtdWahyu.blob();
+            ttdWahyuDataUrl = await compressImageToDataURL(blobTtdWahyu, 300, 'image/png');
         }
     } catch(e) {
         try {
@@ -228,9 +256,10 @@ async function generateBeritaAcaraReguler(d) {
     drawCheckboxOnly(lm + 110, y, checkTransaksiTidakSesuai); doc.text('Tidak Sesuai', lm + 116, y);
     y += 5;
 
+    const isHakPertama = vfBerkas.hak_pertama === 'ya' || d.is_hak_pertama === true;
     doc.text('3.  Perolehan Hak Pertama', lm + 4, y); doc.text(':', lm + 45, y);
-    drawCheckboxOnly(lm + 48, y, d.is_hak_pertama); doc.text('Ya', lm + 54, y);
-    drawCheckboxOnly(lm + 65, y, !d.is_hak_pertama); doc.text('Tidak', lm + 71, y);
+    drawCheckboxOnly(lm + 48, y, isHakPertama); doc.text('Ya', lm + 54, y);
+    drawCheckboxOnly(lm + 65, y, !isHakPertama); doc.text('Tidak', lm + 71, y);
     y += 7;
 
     // Check if need new page
@@ -385,8 +414,11 @@ async function generateBeritaAcaraReguler(d) {
     setFont('normal', 9.5);
     
     // Tampilkan nama verifikator
-    doc.text('1. ' + (d.nama_verifikator_berkas || '...........................................'), lm + 5, y);
-    doc.text('2. ' + (d.nama_verifikator_lapangan || '...........................................'), pw / 2 + 10, y);
+    const v1 = (d.nama_verifikator_berkas || '...........................................').toUpperCase();
+    const v2 = (d.nama_verifikator_lapangan || '...........................................').toUpperCase();
+
+    doc.text('1. ' + v1, lm + 5, y);
+    doc.text('2. ' + v2, pw / 2 + 10, y);
     
     y += 18; 
 
@@ -397,6 +429,22 @@ async function generateBeritaAcaraReguler(d) {
     doc.text('(Tanda Tangan:', pw / 2 + 10, y);
     doc.line(pw / 2 + 37, y, pw / 2 + 80, y);
     doc.text(')', pw / 2 + 81, y);
+
+    // Draw signatures
+    const drawSignature = (name, dx, dy) => {
+        if (ttdAdminDataUrl && (name.includes('ADMINISTRATOR') || name.includes('ADMIN UTAMA') || name.includes('ADYAR NAWAM FAHMI'))) {
+            doc.addImage(ttdAdminDataUrl, 'PNG', dx, dy, 25, 12);
+        } else if (ttdWawanDataUrl && name.includes('WAWAN AFWAN')) {
+            doc.addImage(ttdWawanDataUrl, 'PNG', dx, dy, 25, 12);
+        } else if (ttdThomasDataUrl && name.includes('THOMAS HASANUDDIN')) {
+            doc.addImage(ttdThomasDataUrl, 'PNG', dx, dy, 25, 12);
+        } else if (ttdWahyuDataUrl && (name.includes('MUHAMMAD WAHYU') || name === 'WAHYU')) {
+            doc.addImage(ttdWahyuDataUrl, 'PNG', dx, dy, 25, 12);
+        }
+    };
+
+    drawSignature(v1, lm + 40, y - 10);
+    drawSignature(v2, pw / 2 + 45, y - 10);
 
     const safeName = d.nama ? d.nama.replace(/[^a-zA-Z0-9\s]/g, '') : 'REGULER';
     doc.save('Berita_Acara_Reguler_' + safeName + '.pdf');

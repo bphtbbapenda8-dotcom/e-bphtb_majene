@@ -1,9 +1,10 @@
 /**
  * Generate STPD PDF and return Base64 string (without data URI header)
  * @param {object} d - Data row
- * @param {number} denda - Nominal denda
+ * @param {string} noRegister - STPD No Register
+ * @param {string} tglKwitansi - Tanggal Kwitansi
  */
-async function generateSTPDPDF(d, denda) {
+async function generateSTPDPDF(d, denda, noRegister = '', tglKwitansi = '') {
     if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
         throw new Error('Library PDF belum siap.');
     }
@@ -71,7 +72,8 @@ async function generateSTPDPDF(d, denda) {
     y += 6;
     
     const thnStpd = new Date().getFullYear();
-    centerText(`NOMOR: STPD /        / ${thnStpd}`, y, 12, 'bold');
+    const noRegDisplay = noRegister ? noRegister : '       ';
+    centerText(`NOMOR: STPD / ${noRegDisplay} / ${thnStpd}`, y, 12, 'bold');
     y += 15;
 
     // Body text
@@ -101,8 +103,20 @@ async function generateSTPDPDF(d, denda) {
     
     fillLine('Nama Wajib Pajak', safeNama, y); y += 8;
     fillLine('Alamat Wajib Pajak', safeAlamat, y); y += 8;
-    fillLine('Tanggal Kwitansi', '', y); y += 8;
-    fillLine('Tanggal Lapor', '', y); y += 12;
+    
+    // Format tanggal
+    const fmtTgl = (dstr) => {
+        if (!dstr) return '-';
+        const date = new Date(dstr);
+        if (isNaN(date.getTime())) return dstr;
+        const hari = String(date.getDate()).padStart(2, '0');
+        const bln = String(date.getMonth() + 1).padStart(2, '0');
+        const thn = date.getFullYear();
+        return `${hari}-${bln}-${thn}`;
+    };
+
+    fillLine('Tanggal Kwitansi', fmtTgl(tglKwitansi), y); y += 8;
+    fillLine('Tanggal Lapor', fmtTgl(d.created_at), y); y += 12;
 
     const p2 = 'Hasil penelitian menunjukkan adanya keterlambatan penyampaian SPTPD melebihi batas waktu 15 (lima belas) hari kerja setelah berakhirnya masa pajak.';
     const lines2 = doc.splitTextToSize(p2, cw);

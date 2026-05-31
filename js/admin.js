@@ -48,6 +48,8 @@ function adminApp(type) {
             isStpdActive: false,
             stpd_denda: 100000,
             dispStpdDenda: '100.000',
+            stpd_no_register: '',
+            stpd_tanggal_kwitansi: '',
             stpd_status: ''
         },
 
@@ -133,6 +135,8 @@ function adminApp(type) {
             this.adminForm.stpd_denda = item.stpd_denda ? item.stpd_denda : 100000;
             this.adminForm.dispStpdDenda = fmtRpDisplay(this.adminForm.stpd_denda);
             this.adminForm.stpd_status = item.stpd_status || '';
+            this.adminForm.stpd_no_register = item.stpd_no_register || '';
+            this.adminForm.stpd_tanggal_kwitansi = item.stpd_tanggal_kwitansi || '';
 
             // Reset upload file handlers
             this.resiFileObj = null;
@@ -311,6 +315,8 @@ function adminApp(type) {
                 // STPD payload mapping
                 if (this.adminForm.isStpdActive) {
                     updateData.stpd_denda = this.adminForm.stpd_denda;
+                    updateData.stpd_no_register = this.adminForm.stpd_no_register;
+                    updateData.stpd_tanggal_kwitansi = this.adminForm.stpd_tanggal_kwitansi;
                     updateData.url_berkas_stpd = urlBerkasStpd;
                     updateData.url_resi_stpd = urlResiStpd;
                     // If newly activated, status is 'Menunggu Pembayaran'. Otherwise, preserve or set from admin input
@@ -322,6 +328,8 @@ function adminApp(type) {
                 } else {
                     // Turn off/clear STPD
                     updateData.stpd_denda = 0;
+                    updateData.stpd_no_register = null;
+                    updateData.stpd_tanggal_kwitansi = null;
                     updateData.url_berkas_stpd = null;
                     updateData.url_resi_stpd = null;
                     updateData.url_bukti_stpd = null;

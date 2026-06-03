@@ -113,6 +113,35 @@ function mbrFormApp() {
                 this.isNikValid = true; // Automatically valid if editing
                 await this.loadEditData(editId);
             }
+
+            // Listen to input events to convert text to uppercase (except email which is lowercase)
+            document.addEventListener('input', (e) => {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                    if (['file', 'date', 'number', 'checkbox', 'radio', 'password'].includes(e.target.type)) {
+                        return;
+                    }
+                    if (e.target.id === 'nop_mbr_input') {
+                        return;
+                    }
+                    
+                    const start = e.target.selectionStart;
+                    const end = e.target.selectionEnd;
+                    
+                    if (e.target.type === 'email') {
+                        const lowerVal = e.target.value.toLowerCase();
+                        if (e.target.value !== lowerVal) {
+                            e.target.value = lowerVal;
+                            if (start !== null) e.target.setSelectionRange(start, end);
+                        }
+                    } else {
+                        const upperVal = e.target.value.toUpperCase();
+                        if (e.target.value !== upperVal) {
+                            e.target.value = upperVal;
+                            if (start !== null) e.target.setSelectionRange(start, end);
+                        }
+                    }
+                }
+            }, true);
         },
 
         async loadPerumahan() {

@@ -220,6 +220,10 @@ function mbrFormApp() {
             return Object.keys(DATA_WILAYAH);
         },
 
+        get listPerumahan() {
+            return Object.keys(this.dataPerumahan);
+        },
+
         get nilaiMelebihiMax() {
             return this.form.nilaiTransaksi > this.MAX_NILAI;
         },

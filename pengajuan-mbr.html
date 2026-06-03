@@ -193,7 +193,7 @@
                                 <label for="letak_tanah_bangunan" class="block text-sm font-medium text-slate-700 mb-1">Letak Tanah & Bangunan (Perumahan) <span class="text-red-500">*</span></label>
                                 <select id="letak_tanah_bangunan" x-model="form.letak_tanah_bangunan" @change="onPerumahanChange()" required class="form-input w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                                     <option value="">-- Pilih Perumahan MBR --</option>
-                                    <template x-for="p in Object.keys(dataPerumahan)" :key="p">
+                                    <template x-for="p in listPerumahan" :key="p">
                                         <option :value="p" x-text="p"></option>
                                     </template>
                                 </select>
@@ -399,7 +399,7 @@
 <script src="js/wilayah.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/map.js"></script>
-<script src="js/mbr-form.js?v=2"></script>
+<script src="js/mbr-form.js?v=3"></script>
 <script>initSidebar();</script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>

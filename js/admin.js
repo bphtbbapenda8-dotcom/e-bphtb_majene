@@ -99,6 +99,21 @@ function adminApp(type) {
                         (item.nik && item.nik.toLowerCase().includes(search))
                     );
                 }
+
+                if (this.isMbr) {
+                    rawData.sort((a, b) => {
+                        const aFinished = a.alur_berkas === 'Selesai';
+                        const bFinished = b.alur_berkas === 'Selesai';
+
+                        if (aFinished && !bFinished) return 1;
+                        if (!aFinished && bFinished) return -1;
+
+                        const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
+                        const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
+                        return bTime - aTime;
+                    });
+                }
+
                 this.data = rawData;
             } catch (err) {
                 console.error('[Admin] fetchData error:', err);

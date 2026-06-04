@@ -43,9 +43,9 @@ async function generateSuratKeteranganMBR(d) {
     }
 
     const { jsPDF } = window.jspdf || { jsPDF: window.jsPDF };
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [215.9, 330.2], compress: true });
 
-    const pw = 210, lm = 20, rm = pw - 20, cw = rm - lm;
+    const pw = 215.9, lm = 20, rm = pw - 20, cw = rm - lm;
 
     const setFont     = (style, size) => { doc.setFont('times', style); doc.setFontSize(size); };
     const centerText  = (text, y, size, style) => { setFont(style || 'normal', size || 11); doc.text(text, pw / 2, y, { align: 'center' }); };

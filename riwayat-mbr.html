@@ -204,24 +204,7 @@
                                 </div>
                             </template>
 
-                            <!-- Tombol Download Berita Acara (jika kedua verifikasi sudah disetujui) -->
-                            <template x-if="(String(selectedBerkas?.verifikasi_berkas_status || '').toLowerCase() === 'disetujui') && (String(selectedBerkas?.verifikasi_lapangan_status || '').toLowerCase() === 'disetujui')">
-                                <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:.85rem;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
-                                    <div>
-                                        <div style="color:#bfdbfe;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Verifikasi Selesai</div>
-                                        <div style="color:#fff;font-weight:900;font-size:.9rem;margin-top:.2rem">Berita Acara Verifikasi Lapangan</div>
-                                        <div style="color:#93c5fd;font-size:.7rem;margin-top:.15rem">Dokumen resmi verifikasi berkas &amp; lapangan</div>
-                                    </div>
-                                    <button
-                                        @click="generateBeritaAcaraMBR(selectedBerkas)"
-                                        style="background:#fff;color:#1d4ed8;font-weight:900;font-size:.8rem;border:none;border-radius:.65rem;padding:.6rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .15s"
-                                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''"
-                                    >
-                                        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                        Unduh Berita Acara
-                                    </button>
-                                </div>
-                            </template>
+
 
                             <!-- Alur Pembayaran Utama MBR -->
                             <template x-if="selectedBerkas?.alur_berkas === 'Pembayaran'">

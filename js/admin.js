@@ -323,15 +323,20 @@ function adminApp(type) {
                         : (status === 'Berkas ditolak' ? (this.selectedBerkas.pajak || 0) : 0),
                     no_validasi: status === 'Selesai' ? this.adminForm.no_validasi : null,
                     catatan_penolakan: status === 'Berkas ditolak' ? this.adminForm.catatan_penolakan : null,
-                    link_resi: linkResi,
-                    url_surat_selesai: urlSuratSelesai
+                    link_resi: linkResi
                 };
+
+                if (this.isMbr) {
+                    updateData.url_surat_selesai = urlSuratSelesai;
+                }
 
                 // STPD payload mapping
                 if (this.adminForm.isStpdActive) {
                     updateData.stpd_denda = this.adminForm.stpd_denda;
-                    updateData.stpd_no_register = this.adminForm.stpd_no_register;
-                    updateData.stpd_tanggal_kwitansi = this.adminForm.stpd_tanggal_kwitansi;
+                    if (!this.isMbr) {
+                        updateData.stpd_no_register = this.adminForm.stpd_no_register;
+                        updateData.stpd_tanggal_kwitansi = this.adminForm.stpd_tanggal_kwitansi;
+                    }
                     updateData.url_berkas_stpd = urlBerkasStpd;
                     updateData.url_resi_stpd = urlResiStpd;
                     // If newly activated, status is 'Menunggu Pembayaran'. Otherwise, preserve or set from admin input
@@ -343,8 +348,10 @@ function adminApp(type) {
                 } else {
                     // Turn off/clear STPD
                     updateData.stpd_denda = 0;
-                    updateData.stpd_no_register = null;
-                    updateData.stpd_tanggal_kwitansi = null;
+                    if (!this.isMbr) {
+                        updateData.stpd_no_register = null;
+                        updateData.stpd_tanggal_kwitansi = null;
+                    }
                     updateData.url_berkas_stpd = null;
                     updateData.url_resi_stpd = null;
                     updateData.url_bukti_stpd = null;

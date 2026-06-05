@@ -144,9 +144,83 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <!-- Link Dokumen -->
-                            <div class="modal-section">
-                                <div class="modal-section-title">Dokumen Lampiran Wajib Pajak</div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem">
+                                
+                                <!-- Column 1: Read-only Taxpayer Details -->
+                                <div style="display:flex;flex-direction:column;gap:1rem">
+                                    <!-- Identitas WP -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Identitas Wajib Pajak</div>
+                                        <div class="modal-grid-2">
+                                            <div class="modal-field"><div class="modal-field-label">NIK</div><div class="modal-field-value mono" x-text="selectedBerkas?.nik || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Nama</div><div class="modal-field-value" x-text="selectedBerkas?.nama || '-'"></div></div>
+                                            <template x-if="selectedBerkas?.isMbr">
+                                                <div class="modal-field"><div class="modal-field-label">Pekerjaan</div><div class="modal-field-value" x-text="selectedBerkas?.pekerjaan || '-'"></div></div>
+                                            </template>
+                                            <template x-if="selectedBerkas?.isMbr">
+                                                <div class="modal-field"><div class="modal-field-label">Penghasilan</div><div class="modal-field-value" style="color:#16a34a;font-weight:700" x-text="selectedBerkas?.penghasilan ? fmtCurr(selectedBerkas.penghasilan) : '-'"></div></div>
+                                            </template>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat WP</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.alamat_wp || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Email</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.email || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">WhatsApp</div><div class="modal-field-value" x-text="selectedBerkas?.wa || '-'"></div></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Objek Pajak -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Data Objek Pajak</div>
+                                        <div class="modal-grid-2">
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">NOP PBB</div><div class="modal-field-value mono" x-text="String(selectedBerkas?.nop || '-').replace(/[\.\-]/g, '')"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Kecamatan</div><div class="modal-field-value" x-text="selectedBerkas?.kecamatan || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Kelurahan</div><div class="modal-field-value" x-text="selectedBerkas?.kelurahan || '-'"></div></div>
+                                            <div class="modal-field modal-col-2"><div class="modal-field-label">Alamat Objek</div><div class="modal-field-value" style="font-size:.8rem" x-text="selectedBerkas?.alamat_op || '-'"></div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Luas Bumi</div><div class="modal-field-value"><span x-text="selectedBerkas?.luas_bumi || 0"></span> m&sup2;</div></div>
+                                            <div class="modal-field"><div class="modal-field-label">Luas Bangunan</div><div class="modal-field-value"><span x-text="selectedBerkas?.luas_bangunan || 0"></span> m&sup2;</div></div>
+                                            <template x-if="!selectedBerkas?.isMbr">
+                                                <div class="modal-field"><div class="modal-field-label">NJOP Bumi/m&sup2;</div><div class="modal-field-value" style="font-size:.8rem" x-text="fmtCurr(selectedBerkas?.njop_bumi || 0)"></div></div>
+                                            </template>
+                                            <template x-if="!selectedBerkas?.isMbr">
+                                                <div class="modal-field"><div class="modal-field-label">NJOP Bangunan/m&sup2;</div><div class="modal-field-value" style="font-size:.8rem" x-text="fmtCurr(selectedBerkas?.njop_bangunan || 0)"></div></div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Perhitungan Dasar / Nilai Transaksi -->
+                                    <div class="modal-section modal-section-dark" :style="selectedBerkas?.isMbr ? 'background:#064e3b' : ''">
+                                        <div class="modal-section-title" :style="selectedBerkas?.isMbr ? 'color:#a7f3d0' : ''">Nilai Transaksi & Pajak</div>
+                                        <div class="modal-grid-2">
+                                            <template x-if="!selectedBerkas?.isMbr">
+                                                <div class="modal-field"><div class="modal-field-label">Total NJOP</div><div class="modal-field-value dark" x-text="fmtCurr(selectedBerkas?.total_njop || 0)"></div></div>
+                                            </template>
+                                            <div class="modal-field"><div class="modal-field-label" :style="selectedBerkas?.isMbr ? 'color:#a7f3d0' : ''">Nilai Transaksi</div><div class="modal-field-value dark" x-text="fmtCurr(selectedBerkas?.nilai_transaksi || 0)"></div></div>
+                                            
+                                            <template x-if="!selectedBerkas?.isMbr && selectedBerkas?.jenis_perolehan !== 'jual_beli'">
+                                                <div class="modal-field" style="grid-column:span 2; background:#f0fdf4; border:1px solid #bbf7d0; padding:.5rem; border-radius:.5rem">
+                                                    <div class="modal-field-label" style="color:#166534">Nilai Pajak Disetujui (Non Jual-Beli)</div>
+                                                    <div class="modal-field-value dark" style="color:#15803d; font-weight:900" x-text="fmtCurr(selectedBerkas?.pajak_ditetapkan || 0)"></div>
+                                                </div>
+                                            </template>
+
+                                            <template x-if="selectedBerkas?.isMbr">
+                                                <div class="modal-field modal-col-2" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid #065f46">
+                                                    <div class="modal-field-label" style="color:#a7f3d0">Ketetapan Pajak BPHTB MBR</div>
+                                                    <div class="modal-field-value big" style="color:#34d399;font-weight:900">RP 0 (Bebas Pajak)</div>
+                                                </div>
+                                            </template>
+
+                                            <template x-if="!selectedBerkas?.isMbr">
+                                                <div class="modal-field"><div class="modal-field-label">Jenis Perolehan</div><div class="modal-field-value accent" style="text-transform:capitalize" x-text="String(selectedBerkas?.jenis_perolehan || '-').replace(/_/g, ' ')"></div></div>
+                                            </template>
+                                            <div class="modal-field"><div class="modal-field-label" :style="selectedBerkas?.isMbr ? 'color:#a7f3d0' : ''">Notaris / PPAT</div><div class="modal-field-value dark" style="font-size:.8rem" x-text="selectedBerkas?.notaris || '-'"></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Column 2: Documents and Actions -->
+                                <div style="display:flex;flex-direction:column;gap:1rem">
+                                    <!-- Link Dokumen -->
+                                    <div class="modal-section">
+                                        <div class="modal-section-title">Dokumen Lampiran Wajib Pajak</div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <template x-if="selectedBerkas?.isMbr">
                                         <template x-for="[label, key] in [
@@ -156,7 +230,8 @@
                                             ['4. AJB / Kwitansi Pembelian','url_ajb'],
                                             ['5. Surat Ket. Belum Menikah','url_surat_belum_menikah'],
                                             ['6. Surat Ket Tidak Memiliki Rumah (Kelurahan)','url_surat_mbr'],
-                                            ['7. Perjanjian Kredit','url_perjanjian_kredit']
+                                            ['7. Perjanjian Kredit','url_perjanjian_kredit'],
+                                            ['8. Slip Gaji','url_slip_gaji']
                                         ]" :key="key">
                                             <template x-if="selectedBerkas?.[key]">
                                                 <a :href="selectedBerkas[key]" target="_blank" class="doc-link" style="margin:0">
@@ -224,6 +299,7 @@
                                                         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="checkbox" x-model="berkasForm.kelengkapan.ajb" style="width:1rem;height:1rem;"> AJB/Kwitansi Pembelian</label>
                                                         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="checkbox" x-model="berkasForm.kelengkapan.spk" style="width:1rem;height:1rem;"> Surat Perjanjian Kredit</label>
                                                         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="checkbox" x-model="berkasForm.kelengkapan.sppt" style="width:1rem;height:1rem;"> SPPT</label>
+                                                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer;"><input type="checkbox" x-model="berkasForm.kelengkapan.slip_gaji" style="width:1rem;height:1rem;"> Slip Gaji</label>
                                                         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer; grid-column: span 2;"><input type="checkbox" x-model="berkasForm.kelengkapan.surat_belum_menikah" style="width:1rem;height:1rem;"> Surat Ket. Belum Menikah</label>
                                                         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.875rem; cursor:pointer; grid-column: span 2;"><input type="checkbox" x-model="berkasForm.kelengkapan.ket_rumah" style="width:1rem;height:1rem;"> Surat Ket. Tidak Memiliki Rumah (Kelurahan)</label>
                                                     </div>
@@ -319,6 +395,8 @@
                                     Berkas ini telah ditolak.
                                 </div>
                             </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

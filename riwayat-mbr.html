@@ -204,7 +204,24 @@
                                 </div>
                             </template>
 
-
+                            <!-- Tombol Download Berita Acara (jika kedua verifikasi sudah disetujui) -->
+                            <template x-if="(String(selectedBerkas?.verifikasi_berkas_status || '').toLowerCase() === 'disetujui') && (String(selectedBerkas?.verifikasi_lapangan_status || '').toLowerCase() === 'disetujui')">
+                                <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:.85rem;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
+                                    <div>
+                                        <div style="color:#bfdbfe;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Verifikasi Selesai</div>
+                                        <div style="color:#fff;font-weight:900;font-size:.9rem;margin-top:.2rem">Berita Acara Verifikasi Lapangan</div>
+                                        <div style="color:#93c5fd;font-size:.7rem;margin-top:.15rem">Dokumen resmi verifikasi berkas &amp; lapangan</div>
+                                    </div>
+                                    <button
+                                        @click="generateBeritaAcaraMBR(selectedBerkas)"
+                                        style="background:#fff;color:#1d4ed8;font-weight:900;font-size:.8rem;border:none;border-radius:.65rem;padding:.6rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .15s"
+                                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''"
+                                    >
+                                        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        Unduh Berita Acara
+                                    </button>
+                                </div>
+                            </template>
 
                             <!-- Alur Pembayaran Utama MBR -->
                             <template x-if="selectedBerkas?.alur_berkas === 'Pembayaran'">
@@ -339,7 +356,7 @@
                             <!-- Dokumen MBR -->
                             <div class="modal-section">
                                 <div class="modal-section-title">Lampiran Dokumen MBR</div>
-                                <template x-for="[label, key] in [['KTP / KK','url_ktp'],['Sertifikat Tanah','url_sertifikat'],['SPPT','url_sppt'],['AJB / Kwitansi Pembelian','url_ajb'],['Surat Ket. Belum Menikah','url_surat_belum_menikah'],['Surat Ket Tidak Memiliki Rumah (Kelurahan)','url_surat_mbr'],['Surat Perjanjian Kredit','url_perjanjian_kredit'],['Bukti Pembayaran','url_bukti_bayar'],['Bukti Bayar STPD','url_bukti_stpd'],['Surat Bebas BPHTB (Disetujui)','url_surat_selesai']]" :key="key">
+                                <template x-for="[label, key] in [['KTP / KK','url_ktp'],['Sertifikat Tanah','url_sertifikat'],['SPPT','url_sppt'],['AJB / Kwitansi Pembelian','url_ajb'],['Surat Ket. Belum Menikah','url_surat_belum_menikah'],['Surat Ket Tidak Memiliki Rumah (Kelurahan)','url_surat_mbr'],['Surat Perjanjian Kredit','url_perjanjian_kredit'],['Slip Gaji','url_slip_gaji'],['Bukti Pembayaran','url_bukti_bayar'],['Bukti Bayar STPD','url_bukti_stpd'],['Surat Bebas BPHTB (Disetujui)','url_surat_selesai']]" :key="key">
                                     <template x-if="selectedBerkas?.[key]">
                                         <a :href="selectedBerkas[key]" target="_blank" class="doc-link" style="margin-bottom:.35rem">
                                             <div class="doc-link-icon"><svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg></div>

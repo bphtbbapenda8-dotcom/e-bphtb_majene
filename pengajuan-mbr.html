@@ -30,14 +30,6 @@
         .card-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        /* Force inputs to uppercase/lowercase visually */
-        form input:not([type="email"]):not([type="date"]):not([type="number"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]):not(#nop_mbr_input), 
-        form textarea {
-            text-transform: uppercase;
-        }
-        form input[type="email"] {
-            text-transform: lowercase;
-        }
     </style>
 </head>
 <body class="h-full bg-slate-100 text-slate-800" data-menu="pengajuan" data-submenu="mbr">
@@ -175,7 +167,6 @@
                                     <option value="BRI">BANK RAKYAT INDONESIA (BRI)</option>
                                     <option value="MANDIRI">BANK MANDIRI</option>
                                     <option value="BNI">BANK NEGARA INDONESIA (BNI)</option>
-                                    <option value="BSN">BANK SYARIAH NASIONAL (BSN)</option>
                                 </select>
                             </div>
                         </div>
@@ -290,7 +281,8 @@
                                 ['ajb','4. AJB/Kwitansi pembelian *'],
                                 ['surat_belum_menikah','5. Surat ket. belum menikah (bagi yang belum menikah)'],
                                 ['suratMbr','6. Surat ket tidak memiliki rumah dari kelurahan *'],
-                                ['perjanjianKredit','7. Surat Perjanjian Kredit *']
+                                ['perjanjianKredit','7. Surat Perjanjian Kredit *'],
+                                ['slip_gaji','8. Slip Gaji *']
                             ]" :key="key">
                                 <div class="border border-dashed border-slate-300 rounded-lg p-4 bg-slate-50 hover:bg-slate-100 transition-colors">
                                     <span class="block text-xs font-semibold text-slate-600 mb-2" x-text="label"></span>

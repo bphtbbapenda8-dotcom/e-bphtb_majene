@@ -40,7 +40,8 @@ function mbrFormApp() {
             ajb: null,
             surat_belum_menikah: null,
             suratMbr: null,
-            perjanjianKredit: null
+            perjanjianKredit: null,
+            slip_gaji: null
         },
 
         fileObjects: {
@@ -50,7 +51,8 @@ function mbrFormApp() {
             ajb: null,
             surat_belum_menikah: null,
             suratMbr: null,
-            perjanjianKredit: null
+            perjanjianKredit: null,
+            slip_gaji: null
         },
 
         // NIK Validation State
@@ -59,7 +61,7 @@ function mbrFormApp() {
         nikErrorMsg: '',
 
         // Existing file URLs (used in edit mode)
-        existingFiles: { url_ktp: '', url_sertifikat: '', url_sppt: '', url_ajb: '', url_surat_belum_menikah: '', url_surat_mbr: '', url_perjanjian_kredit: '' },
+        existingFiles: { url_ktp: '', url_sertifikat: '', url_sppt: '', url_ajb: '', url_surat_belum_menikah: '', url_surat_mbr: '', url_perjanjian_kredit: '', url_slip_gaji: '' },
 
         // Dropdown data
         listKelurahan: [],
@@ -113,35 +115,6 @@ function mbrFormApp() {
                 this.isNikValid = true; // Automatically valid if editing
                 await this.loadEditData(editId);
             }
-
-            // Listen to input events to convert text to uppercase (except email which is lowercase)
-            document.addEventListener('input', (e) => {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                    if (['file', 'date', 'number', 'checkbox', 'radio', 'password'].includes(e.target.type)) {
-                        return;
-                    }
-                    if (e.target.id === 'nop_mbr_input') {
-                        return;
-                    }
-                    
-                    const start = e.target.selectionStart;
-                    const end = e.target.selectionEnd;
-                    
-                    if (e.target.type === 'email') {
-                        const lowerVal = e.target.value.toLowerCase();
-                        if (e.target.value !== lowerVal) {
-                            e.target.value = lowerVal;
-                            if (start !== null) e.target.setSelectionRange(start, end);
-                        }
-                    } else {
-                        const upperVal = e.target.value.toUpperCase();
-                        if (e.target.value !== upperVal) {
-                            e.target.value = upperVal;
-                            if (start !== null) e.target.setSelectionRange(start, end);
-                        }
-                    }
-                }
-            }, true);
         },
 
         async loadPerumahan() {
@@ -221,6 +194,7 @@ function mbrFormApp() {
                 this.existingFiles.url_surat_belum_menikah = data.url_surat_belum_menikah || '';
                 this.existingFiles.url_surat_mbr = data.url_surat_mbr || '';
                 this.existingFiles.url_perjanjian_kredit = data.url_perjanjian_kredit || '';
+                this.existingFiles.url_slip_gaji = data.url_slip_gaji || '';
 
                 // Set NOP mask input
                 this.$nextTick(() => {
@@ -350,7 +324,7 @@ function mbrFormApp() {
                 return;
             }
             if (!this.isEditMode) {
-                if (!this.files?.ktp || !this.files?.sertifikat || !this.files?.sppt || !this.files?.ajb || !this.files?.suratMbr || !this.files?.perjanjianKredit) {
+                if (!this.files?.ktp || !this.files?.sertifikat || !this.files?.sppt || !this.files?.ajb || !this.files?.suratMbr || !this.files?.perjanjianKredit || !this.files?.slip_gaji) {
                     Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap lengkapi semua dokumen yang berstatus wajib (*).', confirmButtonColor: '#16a34a' });
                     return;
                 }
@@ -360,7 +334,8 @@ function mbrFormApp() {
                     (!this.files?.sppt && !this.existingFiles?.url_sppt) ||
                     (!this.files?.ajb && !this.existingFiles?.url_ajb) ||
                     (!this.files?.suratMbr && !this.existingFiles?.url_surat_mbr) ||
-                    (!this.files?.perjanjianKredit && !this.existingFiles?.url_perjanjian_kredit)) {
+                    (!this.files?.perjanjianKredit && !this.existingFiles?.url_perjanjian_kredit) ||
+                    (!this.files?.slip_gaji && !this.existingFiles?.url_slip_gaji)) {
                     Swal.fire({ icon: 'warning', title: 'Berkas Belum Lengkap', text: 'Harap pastikan semua dokumen wajib (*) tersedia.', confirmButtonColor: '#16a34a' });
                     return;
                 }
@@ -388,9 +363,10 @@ function mbrFormApp() {
                 let suratBelumMenikahUrl = this.existingFiles.url_surat_belum_menikah;
                 let suratMbrUrl = this.existingFiles.url_surat_mbr;
                 let perjanjianKreditUrl = this.existingFiles.url_perjanjian_kredit;
+                let slipGajiUrl = this.existingFiles.url_slip_gaji;
 
                 // Check if any new files are being uploaded
-                if (this.fileObjects?.ktp || this.fileObjects?.sertifikat || this.fileObjects?.sppt || this.fileObjects?.ajb || this.fileObjects?.surat_belum_menikah || this.fileObjects?.suratMbr || this.fileObjects?.perjanjianKredit) {
+                if (this.fileObjects?.ktp || this.fileObjects?.sertifikat || this.fileObjects?.sppt || this.fileObjects?.ajb || this.fileObjects?.surat_belum_menikah || this.fileObjects?.suratMbr || this.fileObjects?.perjanjianKredit || this.fileObjects?.slip_gaji) {
                     Swal.fire({
                         title: 'Mengunggah Berkas...',
                         text: 'Menyimpan file ke Google Drive (1/2)',
@@ -408,6 +384,7 @@ function mbrFormApp() {
                     if (this.fileObjects?.surat_belum_menikah) formData.append('surat_belum_menikah_file', await toBase64(this.fileObjects.surat_belum_menikah));
                     if (this.fileObjects?.suratMbr)         formData.append('surat_mbr_file',         await toBase64(this.fileObjects.suratMbr));
                     if (this.fileObjects?.perjanjianKredit) formData.append('perjanjian_kredit_file', await toBase64(this.fileObjects.perjanjianKredit));
+                    if (this.fileObjects?.slip_gaji)        formData.append('slip_gaji_file',         await toBase64(this.fileObjects.slip_gaji));
 
                     const scriptRes = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                     const scriptResult = await scriptRes.json();
@@ -420,6 +397,7 @@ function mbrFormApp() {
                     if (scriptResult.url_surat_belum_menikah) suratBelumMenikahUrl = scriptResult.url_surat_belum_menikah;
                     if (scriptResult.url_surat_mbr)         suratMbrUrl = scriptResult.url_surat_mbr;
                     if (scriptResult.url_perjanjian_kredit) perjanjianKreditUrl = scriptResult.url_perjanjian_kredit;
+                    if (scriptResult.url_slip_gaji)         slipGajiUrl = scriptResult.url_slip_gaji;
                 }
 
                 Swal.fire({
@@ -453,6 +431,7 @@ function mbrFormApp() {
                     url_surat_belum_menikah: suratBelumMenikahUrl,
                     url_surat_mbr:   suratMbrUrl,
                     url_perjanjian_kredit: perjanjianKreditUrl,
+                    url_slip_gaji:   slipGajiUrl,
                     alur_berkas:     'Berkas sedang diverifikasi', // Reset status
                     catatan_penolakan: null, // Clear rejection notes
 

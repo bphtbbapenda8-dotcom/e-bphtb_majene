@@ -150,7 +150,7 @@
                     </table>
                     <div class="table-footer">
                         <p class="table-footer-count">Menampilkan <span x-text="data.length"></span> data MBR</p>
-                        <p class="table-footer-note">Terupdate di atas, Selesai di bawah</p>
+                        <p class="table-footer-note">Terbaru di atas</p>
                     </div>
                 </div>
             </div>
@@ -274,7 +274,8 @@
                                             ['AJB / Kwitansi Pembelian','url_ajb'],
                                             ['Surat Ket. Belum Menikah','url_surat_belum_menikah'],
                                             ['Surat Ket Tidak Memiliki Rumah (Kelurahan)','url_surat_mbr'],
-                                            ['Surat Perjanjian Kredit','url_perjanjian_kredit']
+                                            ['Surat Perjanjian Kredit','url_perjanjian_kredit'],
+                                            ['Slip Gaji','url_slip_gaji']
                                         ]" :key="key">
                                             <template x-if="selectedBerkas?.[key]">
                                                 <a :href="selectedBerkas[key]" target="_blank" class="doc-link" style="margin-bottom:.35rem">

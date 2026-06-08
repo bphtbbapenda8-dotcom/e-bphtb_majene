@@ -155,7 +155,8 @@ function getMenuForRole(role) {
         label: 'Manajemen Data',
         icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 4 3h8c2.5 0 4-1 4-3V7m-4 0V5c0-1.5-1-2.5-3-2.5H9C7 2.5 6 3.5 6 5v2m10 0H8"/></svg>`,
         subs: [
-            { id: 'data-perumahan', label: 'Data Perumahan', href: 'data-perumahan.html' }
+            { id: 'data-perumahan', label: 'Data Perumahan', href: 'data-perumahan.html' },
+            { id: 'data-bank',      label: 'Data Bank',      href: 'data-bank.html' }
         ]
     };
 

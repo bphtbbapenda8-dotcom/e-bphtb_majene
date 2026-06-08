@@ -66,6 +66,7 @@ function mbrFormApp() {
         // Dropdown data
         listKelurahan: [],
         listNotaris: [],
+        listBank: [],
 
         // UI & Edit State
         showPreview: false,
@@ -103,6 +104,7 @@ function mbrFormApp() {
             }
 
             await this.loadPerumahan();
+            await this.loadBank();
             this.$nextTick(() => {
                 initNopMask('nop_mbr_input');
             });
@@ -133,6 +135,26 @@ function mbrFormApp() {
                 this.dataPerumahan = mapped;
             } catch(e) {
                 console.error("Gagal load perumahan:", e);
+            }
+        },
+
+        async loadBank() {
+            try {
+                const { data, error } = await db.from('data_bank')
+                    .select('nama_bank, kode_bank')
+                    .order('nama_bank', { ascending: true });
+                if (error) throw error;
+                this.listBank = data || [];
+            } catch(e) {
+                console.error("Gagal load bank:", e);
+                // Fallback to static list if database query fails
+                this.listBank = [
+                    { nama_bank: 'BANK TABUNGAN NEGARA', kode_bank: 'BTN' },
+                    { nama_bank: 'BANK SULSELBAR', kode_bank: 'BPD SULSELBAR' },
+                    { nama_bank: 'BANK RAKYAT INDONESIA', kode_bank: 'BRI' },
+                    { nama_bank: 'BANK MANDIRI', kode_bank: 'MANDIRI' },
+                    { nama_bank: 'BANK NEGARA INDONESIA', kode_bank: 'BNI' }
+                ];
             }
         },
 

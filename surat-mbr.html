@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Keterangan MBR | e-BPHTB Majene</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/table.css">
+</head>
+<body data-menu="verifikasi" data-submenu="surat-mbr">
+
+<div class="app-layout">
+    <aside id="sidebar-mount" class="sidebar-desktop"></aside>
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <aside id="mobile-sidebar-mount" class="sidebar-mobile"></aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button id="mobile-menu-btn" class="topbar-menu-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <p class="topbar-title">Surat Keterangan MBR</p>
+            <button class="topbar-logout-btn" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </header>
+
+        <main class="page-content fade-in-up" x-data="suratMbrApp()">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem">
+                <div class="page-header" style="margin-bottom:0">
+                    <h2>Surat Keterangan MBR</h2>
+                    <p>Daftar berkas MBR yang telah selesai beserta lampiran Surat Keterangan MBR.</p>
+                </div>
+                <button @click="loadData()" class="btn-refresh blue">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Refresh
+                </button>
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="filter-field">
+                        <label class="field-label" style="font-size:.65rem">Cari NOP/Nama</label>
+                        <input type="text" x-model="searchQuery" class="input-field" placeholder="Ketik NOP atau Nama..." style="font-size:.8rem;padding:.55rem .75rem;border-radius:.6rem">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="page-card">
+                <div x-show="loading" class="loading-state">
+                    <svg class="spinner spinner-blue" fill="none" viewBox="0 0 24 24">
+                        <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                </div>
+
+                <div x-show="!loading && filteredData.length === 0" class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <p>Tidak ada data surat MBR yang selesai.</p>
+                </div>
+
+                <div x-show="!loading && filteredData.length > 0" class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tanggal Selesai</th>
+                                <th>Nama WP</th>
+                                <th>NOP / Alamat Objek</th>
+                                <th>Nama Notaris</th>
+                                <th>Surat Keterangan MBR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(item, i) in filteredData" :key="item.no_pengajuan">
+                                <tr>
+                                    <td class="td-no" x-text="i + 1"></td>
+                                    <td style="font-weight:700;font-family:monospace;color:#475569" x-text="fmtDate(item.tanggal_surat_keterangan)"></td>
+                                    <td>
+                                        <p class="td-name-main" x-text="item.nama"></p>
+                                        <p class="td-name-sub" x-text="item.nik"></p>
+                                    </td>
+                                    <td>
+                                        <p style="font-size:0.85rem; font-weight:600; font-family:monospace; color:#334155" x-text="String(item.nop || '-').replace(/[\.\-]/g, '')"></p>
+                                        <p style="font-size:0.75rem; color:#64748b; margin-top:0.125rem" x-text="item.alamat_op || '-'"></p>
+                                    </td>
+                                    <td>
+                                        <p style="font-size:0.75rem; color:#475569; max-width:150px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" x-text="item.notaris || '-'"></p>
+                                    </td>
+                                    <td>
+                                        <template x-if="item.url_surat_selesai">
+                                            <a :href="item.url_surat_selesai" target="_blank" class="btn-action btn-action-blue" style="font-size:0.75rem; padding:0.4rem 0.75rem; display:inline-flex; align-items:center; gap:0.25rem; text-decoration:none;">
+                                                <svg style="width:14px;height:14px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                Unduh Surat MBR
+                                            </a>
+                                        </template>
+                                        <template x-if="!item.url_surat_selesai">
+                                            <span style="font-size:0.75rem; color:#94a3b8; font-style:italic">Belum tersedia</span>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/surat-mbr.js"></script>
+<script>initSidebar();</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</body>
+</html>

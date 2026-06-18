@@ -189,39 +189,11 @@
                             <!-- Nomor Validasi BPHTB MBR (Jika Selesai) -->
                             <template x-if="selectedBerkas?.alur_berkas === 'Selesai'">
                                 <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:.75rem;padding:1rem;margin-bottom:1.25rem;text-align:center">
-                                    <h4 style="color:#166534;font-weight:900;font-size:.75rem;text-transform:uppercase">Nomor Validasi BPHTB MBR</h4>
-                                    <div style="color:#15803d;font-weight:900;font-size:1.35rem;font-family:monospace;letter-spacing:.05em;margin-top:.35rem" x-text="selectedBerkas.no_validasi"></div>
-                                    <p style="color:#86efac;font-size:.65rem;margin-top:.25rem">*Gunakan nomor validasi ini untuk keperluan verifikasi dokumen di BPN.</p>
-                                    
-                                    <template x-if="selectedBerkas.url_surat_selesai">
-                                        <div style="margin-top:1rem;border-top:1px solid #bbf7d0;padding-top:1rem;display:flex;justify-content:center">
-                                            <a :href="selectedBerkas.url_surat_selesai" target="_blank" style="background:#16a34a;color:#fff;font-weight:bold;font-size:.8rem;padding:.5rem 1.2rem;border-radius:.5rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 4px 6px -1px rgba(22, 163, 74, 0.3)">
-                                                <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                Unduh Surat Keterangan Bebas BPHTB
-                                            </a>
-                                        </div>
-                                    </template>
+                                    <h4 style="color:#166534;font-weight:900;font-size:.75rem;text-transform:uppercase">Surat Keterangan MBR dan Validasi</h4>
+                                    <p style="color:#15803d;font-size:.85rem;margin-top:.5rem;font-weight:600;line-height:1.4">Surat keterangan MBR dan validasi Anda dapat diambil di kantor Badan Pendapatan Daerah Kabupaten Majene dengan membawa berkas fisik yang telah Anda upload sebagai persyaratan.</p>
                                 </div>
                             </template>
 
-                            <!-- Tombol Download Berita Acara (jika kedua verifikasi sudah disetujui) -->
-                            <template x-if="(String(selectedBerkas?.verifikasi_berkas_status || '').toLowerCase() === 'disetujui') && (String(selectedBerkas?.verifikasi_lapangan_status || '').toLowerCase() === 'disetujui')">
-                                <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:.85rem;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
-                                    <div>
-                                        <div style="color:#bfdbfe;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Verifikasi Selesai</div>
-                                        <div style="color:#fff;font-weight:900;font-size:.9rem;margin-top:.2rem">Berita Acara Verifikasi Lapangan</div>
-                                        <div style="color:#93c5fd;font-size:.7rem;margin-top:.15rem">Dokumen resmi verifikasi berkas &amp; lapangan</div>
-                                    </div>
-                                    <button
-                                        @click="generateBeritaAcaraMBR(selectedBerkas)"
-                                        style="background:#fff;color:#1d4ed8;font-weight:900;font-size:.8rem;border:none;border-radius:.65rem;padding:.6rem 1rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .15s"
-                                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''"
-                                    >
-                                        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                        Unduh Berita Acara
-                                    </button>
-                                </div>
-                            </template>
 
                             <!-- Alur Pembayaran Utama MBR -->
                             <template x-if="selectedBerkas?.alur_berkas === 'Pembayaran'">

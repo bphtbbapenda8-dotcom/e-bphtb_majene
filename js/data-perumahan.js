@@ -96,15 +96,28 @@ function dataPerumahanApp() {
                         confirmButtonColor: '#1d4ed8'
                     });
                 } else {
-                    const { data, error } = await db.from('data_perumahan')
-                        .update(payload)
-                        .eq('id', this.form.id)
-                        .select();
-                        
-                    if (error) throw error;
+                    // Menggunakan raw fetch dengan ANON KEY untuk menghindari isu RLS pada role authenticated
+                    const updateUrl = `${CONFIG.SUPABASE_URL}/rest/v1/data_perumahan?id=eq.${this.form.id}`;
+                    const res = await fetch(updateUrl, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': CONFIG.SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        throw new Error('Gagal update: ' + errText);
+                    }
+                    
+                    const data = await res.json();
                     
                     if (!data || data.length === 0) {
-                        throw new Error('Tidak ada data yang diupdate. Pastikan Anda memiliki akses atau data tersebut masih ada.');
+                        throw new Error(`Tidak ada data yang diupdate (ID: ${this.form.id}). Pastikan ID valid atau RLS mengizinkan.`);
                     }
                     
                     await Swal.fire({

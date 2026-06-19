@@ -96,13 +96,18 @@ function dataPerumahanApp() {
                         confirmButtonColor: '#1d4ed8'
                     });
                 } else {
-                    const { error } = await db.from('data_perumahan')
+                    const { data, error } = await db.from('data_perumahan')
                         .update(payload)
-                        .eq('id', this.form.id);
+                        .eq('id', this.form.id)
+                        .select();
                         
                     if (error) throw error;
                     
-                    Swal.fire({
+                    if (!data || data.length === 0) {
+                        throw new Error('Tidak ada data yang diupdate. Pastikan Anda memiliki akses atau data tersebut masih ada.');
+                    }
+                    
+                    await Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
                         text: 'Data perumahan berhasil diperbarui.',
@@ -111,7 +116,7 @@ function dataPerumahanApp() {
                 }
 
                 this.showModal = false;
-                this.fetchData();
+                await this.fetchData();
             } catch (err) {
                 console.error('[Data Perumahan] saveData error:', err);
                 Swal.fire({
